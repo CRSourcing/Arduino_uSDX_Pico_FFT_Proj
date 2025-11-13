@@ -5,7 +5,9 @@
 
 This fork uses a modified UI and different pushbutton functionality. Also 16 predefined bands can now be selected with the encoder. 
 
-[uSDR-PICO FFT](20251111_111114.jpg)
+![uSDR-PICO FFT](20251111_111114.jpg)
+
+
 ![uSDR-PICO FFT](Pict1.png)
 
 This project is a QSD/QSE Software Defined HF Transceiver (SDR), 5 Band, Low Power, based on  Arjan te Marvelde / uSDR-pico, from https://github.com/ArjanteMarvelde/uSDR-pico.<br>
