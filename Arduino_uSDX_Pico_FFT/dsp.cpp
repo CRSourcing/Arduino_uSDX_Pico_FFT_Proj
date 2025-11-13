@@ -43,7 +43,6 @@
 #include "TFT_eSPI.h"
 #include "display_tft.h"
 #include "pico/multicore.h"
-#include "Dflash.h"
 #include "CwDecoder.h"
 
 #if TX_METHOD == PHASE_AMPLITUDE    // uSDX TX method used for Class E RF amplifier
@@ -1994,40 +1993,10 @@ if(aud_samples_state == AUD_STATE_SAMP_IN)    //store variables for scope graphi
 		out_sample = 0;
 
 
-  if(Aud_Play_Spk == AUDIO_RUNNING)
-  {
-    //if((audio_play_pos < AUDIO_BUF_MAX) &&
-    if(audio_play_pos < audio_rec_pos)
-    {
-      pwm_set_chan_level(dac_audio, PWM_CHAN_A, audio_buf[audio_play_pos]);  //rx audio out
-      audio_play_pos++;
-    }
-    else
-    {
-      Aud_Play_Spk = AUDIO_STOPPED;
-    }
-  }
-  else
-  {
     /* audio output in normal use */
     pwm_set_chan_level(dac_audio, PWM_CHAN_A, out_sample);  //rx audio out
 
-    if(Aud_Rec_Rx == AUDIO_RUNNING)
-    {
-      if(audio_rec_pos < AUDIO_BUF_MAX)
-      {
-        audio_buf[audio_rec_pos] = out_sample;
-        audio_rec_pos++;
-      }
-      else
-      {
-        Aud_Rec_Rx = AUDIO_STOPPED;
-      }
-    }
-  }
-
-
-
+  
 
 #if 0
   if(out_sobe_ == 0)
@@ -2210,27 +2179,6 @@ void tx(void)
   uint i;
   uint16_t i_dac, q_dac;
     
-
-  if(Aud_Play_Tx == AUDIO_RUNNING)
-  {
-    if(audio_play_pos < audio_rec_pos)
-    {
-      a_accu = ((int32_t)audio_buf[audio_play_pos]-DAC_BIAS) << IQ_TX_ATTENUATION;  //undo the output IQ attenuation
-
-      for (i=0; i<(HILBERT_TAP_NUM-1); i++)              // Shift decimated samples
-        a_s[i] = a_s[i+1];
-      a_s[(HILBERT_TAP_NUM-1)] = a_accu;             // Store rescaled accumulator
-
-      audio_play_pos++;
-    }
-    else
-    {
-      Aud_Play_Tx = AUDIO_STOPPED;
-    }
-  }
-  else  //normal tx
-  {
-
     //MODE_USB=0 MODE_LSB=1  MODE_AM=2  MODE_CW=3
     if(dsp_mode != MODE_CW)  //no audio input filter for TX CW - audio out direct generated
     {
@@ -2245,7 +2193,7 @@ void tx(void)
       a_s[(HILBERT_TAP_NUM-1)] = (a_accu >> FILTER_SHIFT);             // Store rescaled accumulator
     }
 
-  }
+  
     
 
 
@@ -2275,15 +2223,6 @@ void tx(void)
     break;
   case MODE_CW:                     // CW
 
-    if(Aud_Play_Tx == AUDIO_RUNNING)
-    {
-        /* play audio CW as LSB */
-        q_accu = (a_s[0]-a_s[14])*315L + (a_s[2]-a_s[12])*440L + (a_s[4]-a_s[10])*734L + (a_s[6]-a_s[ 8])*2202L;
-        qh = (q_accu >> 12);     // / 4096L; 						// LSB: sign is positive        
-    }
-    else  //normal tx
-    {
-
       /*
       * Tx CW I=0 Q=tone
       */
@@ -2304,7 +2243,7 @@ void tx(void)
       pwm_set_chan_level(dac_audio, PWM_CHAN_A, (cw_tone_to_play[cw_tone_to_play_pos]>>6)+DAC_BIAS);  //>>4 = max value, more >>2 to attenuate the side tone sound level
       //pwm_set_chan_level(dac_audio, PWM_CHAN_A, ((a_s_raw[mode_filter_tap_num-1u]>>4)+DAC_BIAS));  //>>4 = max value, more >>2 to attenuate the side tone sound level
 
-    }
+    
     break;
   default:
     break;
@@ -2348,25 +2287,6 @@ void tx(void)
   pwm_set_gpio_level(20, q_dac);
 
 
-
-  if(Aud_Play_Tx == AUDIO_RUNNING)
-  {
-    //audio feedback when audio play TX
-    pwm_set_chan_level(dac_audio, PWM_CHAN_A, q_dac);
-  }
-
-  if((Aud_Rec_Tx == AUDIO_RUNNING) &&
-     (audio_rec_pos < AUDIO_BUF_MAX))
-  {
-    audio_buf[audio_rec_pos] = i_dac;
-    audio_rec_pos++;
-/*
-    if(ptt_external_active == false)
-    {
-      Aud_Rec_Tx = AUDIO_STOPPED;
-    }
-*/  
-  }
 	
 //pwm_set_chan_level(dac_audio, PWM_CHAN_A, i_dac);  //debug LSB to audio out
 //pwm_set_chan_level(dac_audio, PWM_CHAN_A, q_dac);  //debug LSB to audio out
@@ -2520,18 +2440,6 @@ void dsp_core1_setup_and_loop()
 	{
   
 //    gpio_set_mask(1<<14);
-
-    if(DFLASH_in_use != 0)
-    {
-      uint32_t interrupts_Core1 = save_and_disable_interrupts();
-
-      //adc_run(false);
-      DFLASH_in_use = 2;
-      while(DFLASH_in_use == 2);
-      //adc_run(true);
-
-      restore_interrupts(interrupts_Core1);      
-    }    
 
 
 

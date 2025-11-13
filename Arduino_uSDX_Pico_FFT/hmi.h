@@ -15,9 +15,23 @@ extern "C" {
  */
 
 
+#include <stdint.h>
+
+/*
+ * Some macros
+ */
+#ifndef MIN
+#define MIN(x, y)        ((x)<(y)?(x):(y))  // Get min value
+#endif
+#ifndef MAX
+#define MAX(x, y)        ((x)>(y)?(x):(y))  // Get max value
+#endif
+
+
+
 
 //#define   SMETER_TEST   10     //uncomment this line to see the audio level direct on display (used to generate the S Meter levels)
-
+//#define HMI_debug
 
 /* Menu definitions (band vars array position) */
 #define HMI_S_TUNE			0
@@ -26,11 +40,8 @@ extern "C" {
 #define HMI_S_PRE			3
 #define HMI_S_VOX			4
 #define HMI_S_BPF			5
-#define HMI_S_DFLASH   6
-#define HMI_S_AUDIO   7
-#define HMI_NMENUS			8  //number of possible menus
-#define HMI_NMENUS_DFLASH			7   //number of menus saved on DFLASH (only the first ones from the array of menus are saved on dflash)
-                                  //(HMI_NMENUS_DFLASH + 4) must be less than DFLASH DATA_BLOCK_SIZE (16)
+
+#define NUMBER_OF_MENUES			6  //number of possible menus
 
 /* Event definitions */
 #define HMI_E_NOEVENT		0
@@ -48,15 +59,22 @@ extern "C" {
 #define HMI_NEVENTS			12  //number of events
 
 
-/* Sub menu number of options (string sets) */
-#define HMI_NUM_OPT_TUNE	7  // = num pos cursor
+/* Sub menu AMOUNT of options (string sets) */
+/*
+#define HMI_NUM_OPT_TUNE	8  // = num pos cursor
 #define HMI_NUM_OPT_MODE	4
 #define HMI_NUM_OPT_AGC	3
 #define HMI_NUM_OPT_PRE	5
 #define HMI_NUM_OPT_VOX	4
-#define HMI_NUM_OPT_BPF	5
+#define NUMBER_OF_BANDS	5
 #define HMI_NUM_OPT_DFLASH	2
-#define HMI_NUM_OPT_AUDIO 4
+*/
+
+#define HMI_NUM_OPT_TUNE	8  // = amount of fields to position cursor, tune step
+#define HMI_NUM_OPT_MODE	4
+#define HMI_NUM_OPT_AGC	3
+#define HMI_NUM_OPT_PRE	5
+#define HMI_NUM_OPT_VOX	4
 
 
 //"USB","LSB","AM","CW"
@@ -66,68 +84,38 @@ extern "C" {
 #define MODE_CW   3
 
 
-// hmi_o_audio "Rec from TX", "Rec from RX", "Play to TX", "Play to Speaker"
-#define AUDIO_REC_TX   0
-#define AUDIO_REC_RX   1
-#define AUDIO_PLAY_TX   2
-#define AUDIO_PLAY_SPK   3
 
 
 
-#define BAND_VARS_SIZE   (HMI_NMENUS + 4)   //menus + frequency
-#define BAND_VARS_SIZE_DFLASH   (HMI_NMENUS_DFLASH + 4)   //menus + frequency saved on dflash
-//#define BAND_INDEX   HMI_S_BPF    // = 5
-extern uint8_t  band_vars[HMI_NUM_OPT_BPF][BAND_VARS_SIZE];
+#define NUMBER_OF_BANDS	16
+extern uint8_t  band_vars[NUMBER_OF_BANDS][NUMBER_OF_MENUES];
 
+#define START_BAND 4 // band to start transceiver
 
+// Starting freqs when band gets called
 
-/*
- * Some macros
- */
-#ifndef MIN
-#define MIN(x, y)        ((x)<(y)?(x):(y))  // Get min value
-#endif
-#ifndef MAX
-#define MAX(x, y)        ((x)>(y)?(x):(y))  // Get max value
-#endif
+#define b0  1910000LU
+#define b1  3800000LU
+#define b2  7200000LU 
+#define b3  10100000LU 
+#define b4  14200000LU 
+#define b5  18100000LU 
+#define b6  21300000LU
+#define b7  24900000LU
+#define b8  27455000LU
+#define b9  28200000LU
+#define b10 28500000LU
+#define b11  1000000LU
+#define b12 5000000LU
+#define b13 9000000LU
+#define b14 13500000LU
+#define b15 25000000LU
 
-
-
-#define  band0_hmi_freq_default     1820000L
-#define  band1_hmi_freq_default     3700000L
-#define  band2_hmi_freq_default     7050000L
-#define  band3_hmi_freq_default    14200000L
-#define  band4_hmi_freq_default    28400000L
-
-#define b0_0 (uint8_t)((band0_hmi_freq_default >> 24)&0xff)
-#define b0_1 (uint8_t)((band0_hmi_freq_default >> 16)&0xff)
-#define b0_2 (uint8_t)((band0_hmi_freq_default >> 8)&0xff)
-#define b0_3 (uint8_t)(band0_hmi_freq_default&0xff)
-
-#define b1_0 (uint8_t)((band1_hmi_freq_default >> 24)&0xff)
-#define b1_1 (uint8_t)((band1_hmi_freq_default >> 16)&0xff)
-#define b1_2 (uint8_t)((band1_hmi_freq_default >> 8)&0xff)
-#define b1_3 (uint8_t)(band1_hmi_freq_default&0xff)
-
-#define b2_0 (uint8_t)((band2_hmi_freq_default >> 24)&0xff)
-#define b2_1 (uint8_t)((band2_hmi_freq_default >> 16)&0xff)
-#define b2_2 (uint8_t)((band2_hmi_freq_default >> 8)&0xff)
-#define b2_3 (uint8_t)(band2_hmi_freq_default&0xff)
-
-#define b3_0 (uint8_t)((band3_hmi_freq_default >> 24)&0xff)
-#define b3_1 (uint8_t)((band3_hmi_freq_default >> 16)&0xff)
-#define b3_2 (uint8_t)((band3_hmi_freq_default >> 8)&0xff)
-#define b3_3 (uint8_t)(band3_hmi_freq_default&0xff)
-
-#define b4_0 (uint8_t)((band4_hmi_freq_default >> 24)&0xff)
-#define b4_1 (uint8_t)((band4_hmi_freq_default >> 16)&0xff)
-#define b4_2 (uint8_t)((band4_hmi_freq_default >> 8)&0xff)
-#define b4_3 (uint8_t)(band4_hmi_freq_default&0xff)
 
 
 #define GP_PTT		15
 
-//extern uint8_t  hmi_sub[HMI_NMENUS];							// Stored option selection per state
+//extern uint8_t  hmi_sub[NUMBER_OF_MENUES];							// Stored option selection per state
 extern uint32_t hmi_freq;  
 extern uint8_t  hmi_band;	
 extern bool tx_enabled;
@@ -140,27 +128,12 @@ extern bool ptt_aud_active;
 
 
 
-#define AUDIO_BUF_MAX    160000  //160k bytes(memory used) * (1 / 16khz(sample freq)) = 10s
-extern uint8_t audio_buf[AUDIO_BUF_MAX];
-extern uint32_t audio_rec_pos;
-extern uint32_t audio_play_pos;
-
-#define AUDIO_STOPPED   0
-#define AUDIO_START     1
-#define AUDIO_RUNNING   2
-
-extern uint16_t Aud_Rec_Tx;
-extern uint16_t Aud_Rec_Rx;
-extern uint16_t Aud_Play_Tx;
-extern uint16_t Aud_Play_Spk;
-
-
 void Setup_Band(uint8_t band);
 void hmi_init0(void);
 void hmi_init(void);
 void hmi_evaluate(void);
-
-
+void print_current_mode (char *s); 
+void print_Band(uint8_t band);
 //#define TST_MAX_SMETER_SWR  1
 
 

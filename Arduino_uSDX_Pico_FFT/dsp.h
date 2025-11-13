@@ -86,7 +86,7 @@ extern volatile uint16_t tim_count;
 extern volatile uint16_t fft_samples_ready;
 extern volatile uint16_t fft_display_graf_new;
 
-#define AUD_GRAPH_NUM_COLS  100
+#define AUD_GRAPH_NUM_COLS  93 // was 100
 
 #define AUD_NUM_VAR    (6u)  // number of variables on buffer for low freq = audio graphic
 #define AUD_NUM_SAMP   (AUD_GRAPH_NUM_COLS*3u)  // number of variables on buffer for low freq = audio graphic

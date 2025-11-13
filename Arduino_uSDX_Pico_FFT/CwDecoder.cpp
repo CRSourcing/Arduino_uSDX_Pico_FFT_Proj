@@ -173,7 +173,7 @@ void CwCalcTime()
   limiar_space = 7 * tdot;    //7x dot
 
   sprintf(s1, "%d_", tdot);
-  tft_writexy_plus(1, TFT_LIGHTGREY, TFT_BLACK, 1, 0, 3, 20, (uint8_t *)s1);   
+  tft_writexy_plus(1, TFT_LIGHTGREY, TFT_BACKGROUND, 1, 0, 0, 0, (uint8_t *)s1);   
 }
 
 
@@ -199,7 +199,7 @@ void  to_display(char c)
   for(i=0; i<SCW_MAX-1; i++)
     scw[i] = scw[i+1];
   scw[i] = c; 
-  tft_writexy_plus(1, TFT_LIGHTGREY, TFT_BLACK, 8, 0, 3, 20, (uint8_t *)scw);   
+  tft_writexy_plus(1, TFT_LIGHTGREY, TFT_BACKGROUND, 8, 0, 0, 0, (uint8_t *)scw);   
 }
 
 
@@ -265,18 +265,17 @@ void  graph_to_display(void)
 {
   static uint16_t scwgraph_pos_old;
   uint16_t scwgraph_pos_loc;
-  uint16_t i;
 
   scwgraph_pos_loc = scwgraph_pos;  //local value    avoid mix with interrupt on CORE1
   while(scwgraph_pos_loc != scwgraph_pos_old)
   {
-    //tft.fillRect((SCWGRAPH_X+scwgraph_pos_old), SCWGRAPH_Y, 4, SCWGRAPH_H, TFT_BLACK);  //erase old area
-    tft.drawFastVLine ((SCWGRAPH_X+scwgraph_pos_old), SCWGRAPH_Y+1, SCWGRAPH_H, TFT_BLACK);
+    //tft.fillRect((SCWGRAPH_X+scwgraph_pos_old), SCWGRAPH_Y, 4, SCWGRAPH_H, TFT_BACKGROUND);  //erase old area
+    tft.drawFastVLine ((SCWGRAPH_X+scwgraph_pos_old), SCWGRAPH_Y+1, SCWGRAPH_H, TFT_BACKGROUND);
     tft.drawPixel((SCWGRAPH_X+scwgraph_pos_old), ((SCWGRAPH_Y+SCWGRAPH_H) - scwgraph[scwgraph_pos_old]), TFT_WHITE); 
     if(++scwgraph_pos_old >= SCWGRAPH_MAX)
       scwgraph_pos_old = 0;
   }
-  tft.fillRect((SCWGRAPH_X+scwgraph_pos_old), SCWGRAPH_Y+1, 4, SCWGRAPH_H, TFT_BLACK);  //erase old area
+  tft.fillRect((SCWGRAPH_X+scwgraph_pos_old), SCWGRAPH_Y+1, 4, SCWGRAPH_H, TFT_BACKGROUND);  //erase old area
 }
 
 
@@ -289,7 +288,7 @@ void CwDecoder_Inic(void)
   tdot_acc = 10<<TDOT_SHIFT;   //  tdot = tdot_acc>>TDOT_SHIFT;     // 32 = 15wpm  cw dot time (time base for other parameters)
   CwCalcTime();
 
-  //tft_writexy_plus(1, TFT_LIGHTGREY, TFT_BLACK, 8, 0, 3, 20, (uint8_t *)scw);   
+  //tft_writexy_plus(1, TFT_LIGHTGREY, TFT_BACKGROUND, 8, 0, 3, 20, (uint8_t *)scw);   
   //to_display('K');
 
 
@@ -322,11 +321,11 @@ void CwDecoder_Exit(void)
 
 
   //clear the cw text line
-  tft.fillRect(1, ((3*Y_CHAR1)+20), (SCW_MAX+8)*X_CHAR1, Y_CHAR1-2, TFT_BLACK);
+   tft.fillRect(0,0, 360 , 16, TFT_BACKGROUND);
 /*
 #define X_CHAR1  14
 #define Y_CHAR1  22
-  tft_writexy_plus(1, TFT_LIGHTGREY, TFT_BLACK, 1, 0, 3, 20, (uint8_t *)"                ");   
+  tft_writexy_plus(1, TFT_LIGHTGREY, TFT_BACKGROUND, 1, 0, 3, 20, (uint8_t *)"                ");   
 */
 }
 
@@ -345,7 +344,7 @@ void new_dot(void)
   //to_display('.');
 
   sprintf(s1, "%d_", count_high);
-  tft_writexy_plus(1, TFT_LIGHTGREY, TFT_BLACK, 4, 0, 3, 20, (uint8_t *)s1); 
+  tft_writexy_plus(1, TFT_LIGHTGREY, TFT_BACKGROUND, 4, 0, 0, 0, (uint8_t *)s1); 
 }
 
 
@@ -507,7 +506,7 @@ void wpm_up(void)
     CwCalcTime();
 
     sprintf(s1, "%d_", tdot);
-    tft_writexy_plus(1, TFT_LIGHTGREY, TFT_BLACK, 1, 0, 3, 20, (uint8_t *)s1);   
+    tft_writexy_plus(1, TFT_LIGHTGREY, TFT_BACKGROUND, 1, 0, 0, 0, (uint8_t *)s1);   
   }
 }
 
@@ -522,7 +521,7 @@ void wpm_down(void)
     CwCalcTime();
 
     sprintf(s1, "%d_", tdot);
-    tft_writexy_plus(1, TFT_LIGHTGREY, TFT_BLACK, 1, 0, 3, 20, (uint8_t *)s1);   
+    tft_writexy_plus(1, TFT_LIGHTGREY, TFT_BACKGROUND, 1, 0, 0, 0, (uint8_t *)s1);   
   }  
 }
 
@@ -581,13 +580,6 @@ void cw_limiar_down(void)
 {
 }
 
-
-
-
-
-
-
-
 /**************************************************************************************
     CwDecoder_array_in - uses the cw audio level to search for cw characters
     array received with samples @ 2.5ms
@@ -596,7 +588,7 @@ void CwDecoder_array_in(void)
 {
 uint16_t i = 0;
 static uint16_t cw_rx_array_old = 0;
-uint16_t cw_letter_old = 0;
+
 
   if(cw_rx_array != cw_rx_array_old)  //new array ready to analysis
   {
@@ -607,7 +599,7 @@ uint16_t cw_letter_old = 0;
         //to_graph(cw_rx[i][cw_rx_array_old]);  //put the signal on graphic
 
         //sprintf(s1, "%d_", cw_rx[i][cw_rx_array_old]);
-        //tft_writexy_plus(1, TFT_LIGHTGREY, TFT_BLACK, 4, 0, 3, 20, (uint8_t *)s1); 
+        //tft_writexy_plus(1, TFT_LIGHTGREY, TFT_BACKGROUND, 4, 0, 3, 20, (uint8_t *)s1); 
 
         if(cw_rx[i][cw_rx_array_old] > cw_rx_limiar)
           {
@@ -891,7 +883,7 @@ tabcw['*'].cod = 0x0000;    /* 00000000B  ; ERRO  */
 
     //sprintf(s, "%3d %3d %3d %3d %3d ", cw_rx[i][cw_rx_array_old], cw_rx[i+1][cw_rx_array_old], 
     //                                     cw_rx[i+2][cw_rx_array_old], cw_rx[i+3][cw_rx_array_old], cw_rx[i+4][cw_rx_array_old]);
-    //tft_writexy_plus(1, TFT_GREEN, TFT_BLACK, 1, 0, 3, 20, (uint8_t *)s);   
+    //tft_writexy_plus(1, TFT_GREEN, TFT_BACKGROUND, 1, 0, 3, 20, (uint8_t *)s);   
 
     //sprintf(s, "%3d", max_a_sample);
     //for(i=0; i<MAX_CW_RX_INDEX; i++)
@@ -900,7 +892,7 @@ tabcw['*'].cod = 0x0000;    /* 00000000B  ; ERRO  */
       scw[i] = ((cw_rx[i][cw_rx_array_old] > CW_RX_LIMIAR) ? '1' : '0');
       }
     scw[i] = 0;
-    tft_writexy_plus(1, TFT_LIGHTGREY, TFT_BLACK, 1, 0, 3, 20, (uint8_t *)scw);   
+    tft_writexy_plus(1, TFT_LIGHTGREY, TFT_BACKGROUND, 1, 0, 0, 0, (uint8_t *)scw);   
 
     cw_rx_array_old = cw_rx_array;
   }

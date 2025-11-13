@@ -1,3 +1,4 @@
+#include <sys/_stdint.h>
 /*
  * display.cpp
  * 
@@ -14,9 +15,6 @@
 #include "TFT_eSPI.h"
 #include "display_tft.h"
 #include "hmi.h"
-
-
-
 
 
 // Use hardware SPI
@@ -159,7 +157,7 @@ void tft_cursor_plus(uint16_t font, uint16_t color, uint8_t x, uint8_t x_plus, u
     {
       for(uint16_t i=1; i<((Y_CHAR3 * SIZE3)/8); i++)
       {
-        tft.drawFastHLine (x_old, (((y+1) * Y_CHAR3 * SIZE3) - i)+y_plus , ((X_CHAR3 * SIZE3)*9)/10, TFT_BLACK);
+        tft.drawFastHLine (x_old, (((y+1) * Y_CHAR3 * SIZE3) - i)+y_plus , ((X_CHAR3 * SIZE3)*9)/10, TFT_BACKGROUND);
         tft.drawFastHLine ((x * X_CHAR3 * SIZE3)+x_plus, (((y+1) * Y_CHAR3 * SIZE3) - i)+y_plus , ((X_CHAR3 * SIZE3)*9)/10, color);
       }
       x_old = (x * X_CHAR3 * SIZE3)+x_plus;
@@ -168,7 +166,7 @@ void tft_cursor_plus(uint16_t font, uint16_t color, uint8_t x, uint8_t x_plus, u
     {
       for(uint16_t i=1; i<((Y_CHAR2 * SIZE2)/8); i++)
       {
-        tft.drawFastHLine (x_old, (((y+1) * Y_CHAR2 * SIZE2) - i)+y_plus , X_CHAR2 * SIZE2, TFT_BLACK);
+        tft.drawFastHLine (x_old, (((y+1) * Y_CHAR2 * SIZE2) - i)+y_plus , X_CHAR2 * SIZE2, TFT_BACKGROUND);
         tft.drawFastHLine ((x * X_CHAR2 * SIZE2)+x_plus, (((y+1) * Y_CHAR2 * SIZE2) - i)+y_plus , X_CHAR2 * SIZE2, color);
       }
       x_old = (x * X_CHAR2 * SIZE2)+x_plus;
@@ -177,7 +175,7 @@ void tft_cursor_plus(uint16_t font, uint16_t color, uint8_t x, uint8_t x_plus, u
     {
       for(uint16_t i=1; i<((Y_CHAR1 * SIZE1)/8); i++)
       {
-        tft.drawFastHLine (x_old, (((y+1) * Y_CHAR1 * SIZE1) - i)+y_plus , X_CHAR1 * SIZE1, TFT_BLACK);
+        tft.drawFastHLine (x_old, (((y+1) * Y_CHAR1 * SIZE1) - i)+y_plus , X_CHAR1 * SIZE1, TFT_BACKGROUND);
         tft.drawFastHLine ((x * X_CHAR1 * SIZE1)+x_plus, (((y+1) * Y_CHAR1 * SIZE1) - i)+y_plus , X_CHAR1 * SIZE1, color);
       }
       x_old = (x * X_CHAR1 * SIZE1)+x_plus;
@@ -193,16 +191,10 @@ uint16_t tft_color565(uint16_t r, uint16_t g, uint16_t b)
 }
 
 
+//#define bargraph_Y   (35+Y_CHAR2-3-8)   //line of display
 
-
-
-
-#define bargraph_Y   (35+Y_CHAR2-3-8)   //line of display
-#define bargraph_dY  6    //block high
-#define bargraph_X   10     //initial column 
-#define bargraph_dX  6    //block wide
-#define bargraph_dX_space  1  //space between blocks
-int16_t Smeter_table_color[MAX_Smeter_table] = {  TFT_GREEN, TFT_GREEN, TFT_GREEN, TFT_GREEN, TFT_YELLOW, TFT_YELLOW, TFT_YELLOW, TFT_YELLOW, TFT_RED, TFT_RED, TFT_RED };
+//uint16_t Smeter_table_color[MAX_Smeter_table] = {  TFT_GREEN, TFT_GREEN, TFT_GREEN, TFT_GREEN, TFT_YELLOW, TFT_YELLOW, TFT_YELLOW, TFT_YELLOW, TFT_RED, TFT_RED, TFT_RED };
+uint16_t Smeter_table_color[MAX_Smeter_table] = {  TFT_MAROON, TFT_RED, TFT_RED, TFT_ORANGE, TFT_YELLOW, TFT_YELLOW, TFT_YELLOW, TFT_GREENYELLOW, TFT_GREEN, TFT_GREEN, TFT_EMERALD};
 
 /*
     Smeter_bargraph
@@ -217,6 +209,12 @@ index_new = 10;
 index_old = 0;
 #endif
 
+#ifdef DEBUG
+index_new = 10;
+#endif
+
+
+
   if(index_new >= MAX_Smeter_table)
   {
     index_new = MAX_Smeter_table - 1;
@@ -230,7 +228,7 @@ index_old = 0;
   if(index_old == 0) 
   {
     //draw Smeter first block = fixed one = min one block
-    tft.fillRect((bargraph_X + ((bargraph_dX + bargraph_dX_space) * 0)), bargraph_Y, bargraph_dX, bargraph_dY, Smeter_table_color[0]);
+    tft.fillRect((bargraph_X + ((bargraph_dX + bargraph_dX_space) * 0)), bargraph_Y - 1 + bargraph_dY, bargraph_dX, 3 , Smeter_table_color[0]);
   }
 
   if(index_new > index_old)
@@ -239,7 +237,7 @@ index_old = 0;
     for(i=index_old+1; i<=index_new; i++)
     {
       //draw blocks from actual to the new index
-      tft.fillRect((bargraph_X + ((bargraph_dX + bargraph_dX_space) * i)), bargraph_Y, bargraph_dX, bargraph_dY, Smeter_table_color[i]);
+      tft.fillRect((bargraph_X + ((bargraph_dX + bargraph_dX_space) * i)), bargraph_Y - i + bargraph_dY, bargraph_dX, i + 2, Smeter_table_color[i]);
     }
   }
   else if(index_new < index_old)
@@ -248,7 +246,7 @@ index_old = 0;
     for(i=index_new+1; i<=index_old; i++)
     {
       //erase blocks from actual to the new index
-      tft.fillRect((bargraph_X + ((bargraph_dX + bargraph_dX_space) * i)), bargraph_Y, bargraph_dX, bargraph_dY, TFT_BLACK);
+      tft.fillRect((bargraph_X + ((bargraph_dX + bargraph_dX_space) * i)), bargraph_Y - i + bargraph_dY, bargraph_dX, i + 2, TFT_BACKGROUND);
     }
   }
 
@@ -256,11 +254,7 @@ index_old = 0;
 
 }
 
-
-
-
-//int16_t TxPower_table_color[MAX_Smeter_table] = {  TFT_RED, TFT_RED, TFT_RED, TFT_RED, TFT_MAROON, TFT_MAROON, TFT_MAROON, TFT_MAROON, TFT_ORANGE, TFT_ORANGE, TFT_ORANGE };
-int16_t TxPower_table_color[MAX_Smeter_table] = {  TFT_MAROON, TFT_MAROON, TFT_MAROON, TFT_MAROON, TFT_RED, TFT_RED, TFT_RED, TFT_RED, TFT_MAGENTA, TFT_MAGENTA, TFT_MAGENTA };
+uint16_t TxPower_table_color[MAX_Smeter_table] = {  TFT_MAROON, TFT_MAROON, TFT_MAROON, TFT_MAROON, TFT_RED, TFT_RED, TFT_RED, TFT_RED, TFT_MAGENTA, TFT_MAGENTA, TFT_MAGENTA };
 
 
 /*
@@ -307,17 +301,12 @@ index_old = 0;
     for(i=index_new+1; i<=index_old; i++)
     {
       //erase blocks from actual to the new index
-      tft.fillRect((bargraph_X + ((bargraph_dX + bargraph_dX_space) * i)), bargraph_Y, bargraph_dX, bargraph_dY, TFT_BLACK);
+      tft.fillRect((bargraph_X + ((bargraph_dX + bargraph_dX_space) * i)), bargraph_Y, bargraph_dX, bargraph_dY, TFT_BACKGROUND);
     }
   }
 
   index_old = index_new;
 }
-
-
-
-
-
 
 
 
@@ -353,7 +342,7 @@ void display_fft_graf_top(void)
         triang_x_min = (display_WIDTH/2);
         triang_x_max = (display_WIDTH/2)+TRIANG_WIDTH;
         tft.fillTriangle(display_WIDTH/2, Y_MIN_DRAW - ABOVE_SCALE, display_WIDTH/2, Y_MIN_DRAW - TRIANG_TOP, (display_WIDTH/2)+TRIANG_WIDTH, Y_MIN_DRAW - ABOVE_SCALE, TFT_YELLOW);
-        tft.fillTriangle((display_WIDTH/2)-1, Y_MIN_DRAW - ABOVE_SCALE, display_WIDTH/2, Y_MIN_DRAW - TRIANG_TOP, (display_WIDTH/2)-TRIANG_WIDTH, Y_MIN_DRAW - ABOVE_SCALE, TFT_BLACK);
+        tft.fillTriangle((display_WIDTH/2)-1, Y_MIN_DRAW - ABOVE_SCALE, display_WIDTH/2, Y_MIN_DRAW - TRIANG_TOP, (display_WIDTH/2)-TRIANG_WIDTH, Y_MIN_DRAW - ABOVE_SCALE, TFT_BACKGROUND);
         break;
       case 1:  //LSB
         triang_x_min = (display_WIDTH/2)-TRIANG_WIDTH;
@@ -363,7 +352,7 @@ void display_fft_graf_top(void)
                          TFT_YELLOW);
         tft.fillTriangle((display_WIDTH/2)+1, Y_MIN_DRAW - ABOVE_SCALE, 
                           display_WIDTH/2, Y_MIN_DRAW - TRIANG_TOP, (display_WIDTH/2)+TRIANG_WIDTH, Y_MIN_DRAW - ABOVE_SCALE, 
-                          TFT_BLACK);
+                          TFT_BACKGROUND);
         break;
       case 2:  //AM
         triang_x_min = (display_WIDTH/2)-TRIANG_WIDTH;
@@ -378,16 +367,16 @@ void display_fft_graf_top(void)
                          TFT_YELLOW);
         tft.fillTriangle((display_WIDTH/2)+1, Y_MIN_DRAW - ABOVE_SCALE, 
                           display_WIDTH/2, Y_MIN_DRAW - TRIANG_TOP, (display_WIDTH/2)+TRIANG_WIDTH, Y_MIN_DRAW - ABOVE_SCALE, 
-                          TFT_BLACK);
+                          TFT_BACKGROUND);
         break;
     }
 
     //erase old freqs on top of scale
-    tft.fillRect(0, Y_MIN_DRAW - TRIANG_TOP - Y_CHAR1, display_WIDTH, Y_CHAR1, TFT_BLACK);
+    tft.fillRect(0, Y_MIN_DRAW - TRIANG_TOP - Y_CHAR1 + 8, display_WIDTH, Y_CHAR1 - 8, TFT_BACKGROUND);
 
     //plot scale on top of waterfall
     tft.drawFastHLine (0, Y_MIN_DRAW - 11, display_WIDTH, TFT_WHITE);
-    tft.fillRect(0, Y_MIN_DRAW - 10, display_WIDTH, 10, TFT_BLACK);
+    tft.fillRect(0, Y_MIN_DRAW - 10, display_WIDTH, 10, TFT_BACKGROUND);
     tft.fillRect(triang_x_min, Y_MIN_DRAW - 10, (triang_x_max - triang_x_min + 1), 11, tft.color565(25, 25, 25)); //shadow
     
     x=0;
@@ -405,26 +394,28 @@ void display_fft_graf_top(void)
       }
       if((freq_graf_ini % 100) == 0)
       {
-         tft.drawFastVLine (x-1, Y_MIN_DRAW - 11, 10, TFT_WHITE);
-         tft.drawFastVLine (x, Y_MIN_DRAW - 11, 10, TFT_WHITE);
-         tft.drawFastVLine (x+1, Y_MIN_DRAW - 11, 10, TFT_WHITE);
+         tft.drawFastVLine (x-1, Y_MIN_DRAW - 11, 10, TFT_GREEN);
+         tft.drawFastVLine (x, Y_MIN_DRAW - 11, 10, TFT_GREEN);
+         tft.drawFastVLine (x+1, Y_MIN_DRAW - 11, 10, TFT_GREEN);
     
          //write new freq values  on top of scale
+         
+         //tft.setTextColor(TFT_GREEN);
          sprintf(vet_char, "%lu", freq_graf_ini);
          siz = strlen(vet_char);
          if(x < (2*X_CHAR1))   //to much to left
          {
-            tft_writexy_plus(1, TFT_MAGENTA, TFT_BLACK,0,0,7,0,(uint8_t *)vet_char);  
+            tft_writexy_plus(1, TFT_GREEN, TFT_BACKGROUND,0,0,7,8,(uint8_t *)vet_char);  // was MANGENTA, changed to GREEN and changed yShift 8 down
          }
          else if((x+((siz-2)*X_CHAR1)) > display_WIDTH)  //to much to right
          {
             j = display_WIDTH - (siz*X_CHAR1);
-            tft_writexy_plus(1, TFT_MAGENTA, TFT_BLACK,0,j,7,0,(uint8_t *)vet_char);  
+            tft_writexy_plus(1, TFT_GREEN, TFT_BACKGROUND,0,j,7,8,(uint8_t *)vet_char);  
          }
          else
          {
             j = x - (2*X_CHAR1);
-            tft_writexy_plus(1, TFT_MAGENTA, TFT_BLACK,0,j,7,0,(uint8_t *)vet_char);  
+            tft_writexy_plus(1, TFT_GREEN, TFT_BACKGROUND,0,j,7,8,(uint8_t *)vet_char);  
          }
       }
       x+=2;
@@ -432,11 +423,6 @@ void display_fft_graf_top(void)
   
 
 }
-
-
-
-
-
 
 
 uint8_t vet_graf_fft[GRAPH_NUM_LINES][FFT_NSAMP];    // [NL][NCOL]
@@ -454,7 +440,7 @@ void display_fft_graf(uint16_t freq)    //receive the actual freq to move the wa
   freq_change = ((int16_t)freq - (int16_t)freq_old);  //how much then dial (freq) changed
 
   //erase waterfall area
-  //tft.fillRect(0, Y_MIN_DRAW, GRAPH_NUM_COLS, GRAPH_NUM_LINES, TFT_BLACK);
+  //tft.fillRect(0, Y_MIN_DRAW, GRAPH_NUM_COLS, GRAPH_NUM_LINES, TFT_BACKGROUND);
 
   extra_color = tft.color565(25, 25, 25);  //light shadow on center freq
 
@@ -463,7 +449,7 @@ void display_fft_graf(uint16_t freq)    //receive the actual freq to move the wa
   for(y=0; y<GRAPH_NUM_LINES; y++)   // y=0 is the line at the bottom   y=(GRAPH_NUM_LINES-1) is the new line
   {
     //erase one waterfall line
-    tft.drawFastHLine (0, (GRAPH_NUM_LINES + Y_MIN_DRAW - y), GRAPH_NUM_COLS, TFT_BLACK);
+    tft.drawFastHLine (0, (GRAPH_NUM_LINES + Y_MIN_DRAW - y), GRAPH_NUM_COLS, TFT_DARKBLUE);// use darkblue background
 
 #ifdef WATERFALL_IN_BLOCK   // all lines in the waterfall move with the freq change (not only the new line)
     //move the waterfall in block according the freq change
@@ -519,6 +505,30 @@ void display_fft_graf(uint16_t freq)    //receive the actual freq to move the wa
     //plot waterfall line
     for(x=0; x<GRAPH_NUM_COLS; x++)
     {
+#ifdef DEBUG    //random lines for debugging                   
+static int lockX = 100;
+static long pixelCount = 320;
+
+if (pixelCount <= 0) {
+  lockX = random(0, 320);             
+  pixelCount = random(20000);       
+}
+
+
+    uint8_t brightness = random( 256);
+
+
+    uint8_t r = brightness >> 3;      // 5 bits
+    uint8_t g = brightness >> 2;      // 6 bits
+    uint8_t b = brightness >> 3;      // 5 bits
+    uint16_t shade = (r << 11) | (g << 5) | b;
+
+
+tft.drawPixel(lockX, (GRAPH_NUM_LINES + Y_MIN_DRAW - y), shade);
+pixelCount--;
+
+#endif
+
       //plot one waterfall line
       if(vet_graf_fft[y][x] > 0)
       {
@@ -535,7 +545,7 @@ void display_fft_graf(uint16_t freq)    //receive the actual freq to move the wa
       {
         if((x>=triang_x_min) && (x<=triang_x_max))  //tune shadow area
         {
-          tft.drawPixel(x, (GRAPH_NUM_LINES + Y_MIN_DRAW - y), TFT_BLACK|extra_color); 
+          tft.drawPixel(x, (GRAPH_NUM_LINES + Y_MIN_DRAW - y), TFT_BACKGROUND|extra_color); 
         }
       }
     }
@@ -596,8 +606,14 @@ int16_t x;
 int16_t aud_samp_trigger;
   
   //erase graphic area
-  //tft.fillRect(0, Y_MIN_DRAW - 10, display_WIDTH, 10, TFT_BLACK);
-  tft.fillRect(X_MIN_AUD_GRAPH, Y_MIN_AUD_GRAPH, AUD_GRAPH_NUM_COLS, (AUD_GRAPH_MAX - AUD_GRAPH_MIN + 1), TFT_BLACK);
+  //tft.fillRect(0, Y_MIN_DRAW - 10, display_WIDTH, 10, TFT_BACKGROUND);
+  tft.fillRect(X_MIN_AUD_GRAPH, Y_MIN_AUD_GRAPH, AUD_GRAPH_NUM_COLS, (AUD_GRAPH_MAX - AUD_GRAPH_MIN + 3), TFT_NAVY);
+
+for (int y = Y_MIN_AUD_GRAPH; y < Y_MIN_AUD_GRAPH + (AUD_GRAPH_MAX - AUD_GRAPH_MIN + 3); y += 5) {
+  for (int x = X_MIN_AUD_GRAPH; x < X_MIN_AUD_GRAPH + AUD_GRAPH_NUM_COLS; x += 5) {
+    tft.drawPixel(x, y, TFT_DARKGREY);  // Added grid
+  }
+}
 
  // if(tx_enabled)
   {
@@ -640,59 +656,51 @@ int16_t aud_samp_trigger;
 }
 
 
-
-
-
-
-
-
-
-
 /*********************************************************
   Initial msgs on display  (after reset)
 *********************************************************/
-void display_tft_setup0(void) {
+void display_intro(void) {
   char s[32];
   
   tft.init();
   tft.setRotation(ROTATION_SETUP);
  
-  tft.fillScreen(TFT_BLACK);
+  tft.fillScreen(TFT_BACKGROUND);
 
 //  sprintf(s, "uSDR Pico");
   sprintf(s, "Arjan-5");  //name changed from uSDR Pico FFT
-  tft_writexy_plus(3, TFT_YELLOW, TFT_BLACK, 2,10,1,0,(uint8_t *)s);
+  tft_writexy_plus(3, TFT_YELLOW, TFT_BACKGROUND, 2,10,1,0,(uint8_t *)s);
 
   //tft.fillRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t radius, uint32_t color)
   //tft.drawRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t radius, uint32_t color)
   tft.drawRoundRect(35, 25, 250, 70, 15, TFT_YELLOW);
 
 //  sprintf(s, "uSDR Pico FFT");  //name changed from uSDR Pico FFT
-  sprintf(s, "5 Band SSB/AM/CW");  //name changed from uSDR Pico FFT
-//  tft_writexy_plus(2, TFT_YELLOW, TFT_BLACK, 0,0,3,10,(uint8_t *)s);
-  tft_writexy_plus(1, TFT_YELLOW, TFT_BLACK, 3,0,5,0,(uint8_t *)s);
+  sprintf(s, "16 Band SSB/AM/CW");  //name changed from uSDR Pico FFT
+//  tft_writexy_plus(2, TFT_YELLOW, TFT_BACKGROUND, 0,0,3,10,(uint8_t *)s);
+  tft_writexy_plus(1, TFT_YELLOW, TFT_BACKGROUND, 3,0,5,0,(uint8_t *)s);
 
   sprintf(s, "HF Transceiver");  //name changed from uSDR Pico FFT
-//  tft_writexy_plus(2, TFT_YELLOW, TFT_BLACK, 0,10,4,10,(uint8_t *)s);
-  tft_writexy_plus(1, TFT_YELLOW, TFT_BLACK, 4,0,6,6,(uint8_t *)s);
+//  tft_writexy_plus(2, TFT_YELLOW, TFT_BACKGROUND, 0,10,4,10,(uint8_t *)s);
+  tft_writexy_plus(1, TFT_YELLOW, TFT_BACKGROUND, 4,0,6,6,(uint8_t *)s);
 
-  tft_writexy_plus(1, TFT_YELLOW, TFT_BLACK, 9,0,7,12,(uint8_t *)SW_VERSION);
+  tft_writexy_plus(1, TFT_YELLOW, TFT_BACKGROUND, 9,0,7,12,(uint8_t *)SW_VERSION);
 
 //#ifdef PY2KLA_setup
 //  sprintf(s, "by");
-//  tft_writexy_plus(1, TFT_LIGHTGREY, TFT_BLACK, 0,0,5,0,(uint8_t *)s);
+//  tft_writexy_plus(1, TFT_LIGHTGREY, TFT_BACKGROUND, 0,0,5,0,(uint8_t *)s);
 //  sprintf(s, "PE1ATM");
 //  sprintf(s, "by");
-//  tft_writexy_plus(1, TFT_LIGHTGREY, TFT_BLACK, 0,0,7,0,(uint8_t *)s);
+//  tft_writexy_plus(1, TFT_LIGHTGREY, TFT_BACKGROUND, 0,0,7,0,(uint8_t *)s);
   sprintf(s, "Arjan te Marvelde");
-  tft_writexy_plus(1, TFT_SKYBLUE, TFT_BLACK, 3,0,9,0,(uint8_t *)s);
+  tft_writexy_plus(1, TFT_SKYBLUE, TFT_BACKGROUND, 3,0,9,0,(uint8_t *)s);
 //  sprintf(s, "and");
-//  tft_writexy_plus(1, TFT_LIGHTGREY, TFT_BLACK, 0,0,8,0,(uint8_t *)s);
+//  tft_writexy_plus(1, TFT_LIGHTGREY, TFT_BACKGROUND, 0,0,8,0,(uint8_t *)s);
 // sprintf(s, "PY2KLA");
 //  sprintf(s, "and");
-//  tft_writexy_plus(1, TFT_LIGHTGREY, TFT_BLACK, 0,0,9,0,(uint8_t *)s);
+//  tft_writexy_plus(1, TFT_LIGHTGREY, TFT_BACKGROUND, 0,0,9,0,(uint8_t *)s);
   sprintf(s, "Klaus Fensterseifer");
-  tft_writexy_plus(1, TFT_SKYBLUE, TFT_BLACK, 2,0,10,0,(uint8_t *)s);
+  tft_writexy_plus(1, TFT_SKYBLUE, TFT_BACKGROUND, 2,0,10,0,(uint8_t *)s);
 //#endif  
 }
 
@@ -702,155 +710,69 @@ void display_tft_setup0(void) {
 /*********************************************************
   
 *********************************************************/
-void display_tft_setup(void) {
+void display_oscilloscope_legend(void) {
 
-//uint16_t x, y;
-char s[32];
-  
-//  tft.init();
-//  tft.setRotation(ROTATION_SETUP);
+uint16_t xPos = 205, yPos = 95;
 
-  tft.fillScreen(TFT_BLACK);
-  
+  tft.fillScreen(TFT_BACKGROUND);
 
-  //tft.drawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color)
-  //tft.drawRect(X_MIN_AUD_GRAPH-1, Y_MIN_AUD_GRAPH-1, AUD_GRAPH_NUM_COLS+2, (AUD_GRAPH_MAX - AUD_GRAPH_MIN + 1)+2, TFT_WHITE);
+  tft.setFreeFont(NULL);
 
-  //plot scale on left of audio scope
-  tft.drawFastVLine (X_MIN_AUD_GRAPH - 11, Y_MIN_AUD_GRAPH, (AUD_GRAPH_MAX - AUD_GRAPH_MIN), TFT_WHITE);
-  
-  //tft.fillRect(0, Y_MIN_DRAW - 10, display_WIDTH, 10, TFT_BLACK);
+  tft.setTextSize(1);
+ /*
+tft.setCursor(xPos, yPos);
+tft.setTextColor(TFT_GREEN);
+tft.print("I");
 
-  tft.drawFastHLine (X_MIN_AUD_GRAPH - 11, Y_MIN_AUD_GRAPH, 8, TFT_WHITE);
-  tft.drawFastHLine (X_MIN_AUD_GRAPH - 11, Y_MIN_AUD_GRAPH+5, 5, TFT_WHITE);
-  tft.drawFastHLine (X_MIN_AUD_GRAPH - 11, Y_MIN_AUD_GRAPH+15, 5, TFT_WHITE);
-  tft.drawFastHLine (X_MIN_AUD_GRAPH - 11, Y_MIN_AUD_GRAPH+25, 8, TFT_WHITE);
-  tft.drawFastHLine (X_MIN_AUD_GRAPH - 11, Y_MIN_AUD_GRAPH+35, 5, TFT_WHITE);
-  tft.drawFastHLine (X_MIN_AUD_GRAPH - 11, Y_MIN_AUD_GRAPH+45, 5, TFT_WHITE);
-  tft.drawFastHLine (X_MIN_AUD_GRAPH - 11, Y_MIN_AUD_GRAPH+50, 8, TFT_WHITE);
- 
+tft.setCursor(xPos + 10, yPos);
+tft.setTextColor(TFT_CYAN, TFT_BACKGROUND);
+tft.print("Q");
+
+tft.setCursor(xPos + 20, yPos);
+tft.setTextColor(TFT_PINK, TFT_BACKGROUND);
+tft.print("A");
 
 
+tft.setCursor(xPos, yPos+ 10);
+tft.setTextColor(TFT_RED, TFT_BACKGROUND);
+tft.print("MIC");
 
+tft.setCursor(xPos,yPos + 20);
+tft.setTextColor(TFT_YELLOW, TFT_BACKGROUND);
+tft.print("PEAK");
 
-  sprintf(s, "I");
-  tft_writexy_plus(1, TFT_GREEN, TFT_BLACK, 8,6,1,0,(uint8_t *)s);
-  sprintf(s, "Q");
-  tft_writexy_plus(1, TFT_CYAN, TFT_BLACK, 8,6,2,0,(uint8_t *)s);
-  sprintf(s, "A");
-  tft_writexy_plus(1, TFT_PINK, TFT_BLACK, 8,6,3,0,(uint8_t *)s);
-  sprintf(s, "MIC");
-  tft_writexy_plus(1, TFT_RED, TFT_BLACK, 10,4,1,0,(uint8_t *)s);
-  sprintf(s, "PEAK");
-  tft_writexy_plus(1, TFT_YELLOW, TFT_BLACK, 10,4,2,0,(uint8_t *)s);
-  sprintf(s, "GAIN");
-  tft_writexy_plus(1, TFT_MAGENTA, TFT_BLACK, 10,4,3,0,(uint8_t *)s);
-
-
-/* 
-  tft.setFreeFont(FONT1);                 // Select the font
-  txt_size = 1;
-  tft.setTextColor(TFT_MAGENTA, TFT_BLACK);
-  tft.setTextSize(txt_size);  //size 1 = 10 pixels, size 2 =20 pixels, and so on
-
-  x = 0;
-  y = 0;
-  sprintf(vet_char, "%dx%d", display_WIDTH/(X_CHAR1 * txt_size) ,display_HEIGHT/(Y_CHAR1 * txt_size));
-  //sprintf(vet_char, "%dx%d %dx%d",display_WIDTH ,display_HEIGHT
-  //                , display_WIDTH/(X_CHAR1 * txt_size) ,display_HEIGHT/(Y_CHAR1 * txt_size));
-  //tft.setCursor(0, 0);
-  //tft.println(vet_char);
-  tft.drawString(vet_char, x * X_CHAR1 * txt_size, y * Y_CHAR1 * txt_size, 1);// Print the string name of the font
-
-  x = 1;
-  y = 1;
-  sprintf(vet_char, "x=%d y=%d",x ,y);
-  //tft.setCursor(x * X_CHAR1 * txt_size, y * Y_CHAR1 * txt_size);
-  //tft.println(vet_char);
-  tft.drawString(vet_char, x * X_CHAR1 * txt_size, y * Y_CHAR1 * txt_size, 1);// Print the string name of the font
-*/
-/*  
-  x = 0;
-  y = 4;
-  sprintf(vet_char, "x=%d y=%d",x ,y);
-  //tft.setCursor(x * X_CHAR1 * txt_size, y * Y_CHAR1 * txt_size);
-  //tft.println(vet_char);
-  tft.drawString(vet_char, x * X_CHAR1 * txt_size, y * Y_CHAR1 * txt_size, 1);// Print the string name of the font
-*/
-
-/*
-  tft.setFreeFont(FONT2);                 // Select the font
-  txt_size = 1;
-  tft.setTextColor(TFT_MAGENTA, TFT_BLACK);
-  tft.setTextSize(txt_size);  //size 1 = 10 pixels, size 2 =20 pixels, and so on
-
-  
-  x = 0;
-  y = 6;
-  sprintf(vet_char, "%dx%d x=%d y=%d", display_WIDTH/(X_CHAR2 * txt_size), display_HEIGHT/(Y_CHAR2 * txt_size), x, y);
-  //sprintf(vet_char, "x=%d y=%d",x ,y);
-  //tft.setCursor(x * X_CHAR2 * txt_size, y * Y_CHAR2 * txt_size);
-  //tft.println(vet_char);
-  tft.drawString(vet_char, x * X_CHAR2 * txt_size, y * Y_CHAR2 * txt_size, 1);// Print the string name of the font
-  
-  x = 5;
-  y = 7;
-  sprintf(vet_char, "x=%d  y=%d",x ,y);
-  //tft.setCursor(x * X_CHAR2 * txt_size, y * Y_CHAR2 * txt_size);
-  //tft.println(vet_char);
-  tft.drawString(vet_char, x * X_CHAR2 * txt_size, y * Y_CHAR2 * txt_size, 1);// Print the string name of the font
-*/
-/*
-  x = 14;
-  y = 10;
-  sprintf(vet_char, "x=%d y=%d",x ,y);
-  //tft.setCursor(x * X_CHAR2 * txt_size, y * Y_CHAR2 * txt_size);
-  //tft.println(vet_char);
-  tft.drawString(vet_char, x * X_CHAR2 * txt_size, y * Y_CHAR2 * txt_size, 1);// Print the string name of the font
-*/
-
-
-/*
-
-//  tft.startWrite();  //CS on for SPI
-
-  tft.drawFastHLine (0, Y_MIN_DRAW, display_WIDTH, TFT_WHITE);
-  for(x=0; x<=((display_WIDTH/(X_CHAR2 * SIZE2))*X_CHAR2); x+=X_CHAR2)
-  {
-    tft.drawFastVLine (x, Y_MIN_DRAW, 10, TFT_WHITE);
-    //x+=X_CHAR2;
-  }
-
-
-
-  for(y=0; y<=((display_HEIGHT/(Y_CHAR2 * SIZE2))*Y_CHAR2); y+=Y_CHAR2)
-  {
-    tft.drawFastHLine (0, y, 10, TFT_WHITE);
-    //y+=Y_CHAR2;
-  }
-
-
-  for(x=0; x<80; x++)
-  {
-    y = x/2;
-    tft.drawPixel(x, y + Y_MIN_DRAW, TFT_RED); 
-    tft.drawPixel(x, y + Y_MIN_DRAW + 1, TFT_RED); 
-    tft.drawPixel(x, y + Y_MIN_DRAW + 2, TFT_RED); 
-  }
-
-//  tft.endWrite();  //CS off for SPI
-
+tft.setCursor(xPos,yPos + 30);
+tft.setTextColor(TFT_MAGENTA, TFT_BACKGROUND);
+tft.print("GAIN"); 
 
 */
 
+  tft.setFreeFont(NULL);
+
+  tft.setTextSize(1);
+  
+tft.setCursor(xPos, yPos);
+
+tft.setTextColor(TFT_GREEN);
+tft.print("I ");
+
+tft.setTextColor(TFT_CYAN, TFT_BACKGROUND);
+tft.print("Q ");
+
+tft.setTextColor(TFT_PINK, TFT_BACKGROUND);
+tft.print("A ");
+
+tft.setTextColor(TFT_RED, TFT_BACKGROUND);
+tft.print("MIC ");
+
+tft.setTextColor(TFT_YELLOW, TFT_BACKGROUND);
+tft.print("PEAK ");
+
+tft.setTextColor(TFT_MAGENTA, TFT_BACKGROUND);
+tft.print("GAIN "); 
 
 
-  //draw Smeter first block
-  //tft.fillRect((bargraph_X + ((bargraph_dX + bargraph_dX_space) * 0)), bargraph_Y, bargraph_dX, bargraph_dY, Smeter_table_color[0]);
-
-
-   
-} // main
+} 
 
 
 
@@ -870,18 +792,18 @@ void display_tft_countdown(bool show, uint16_t val)
     //tft.fillRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t radius, uint32_t color)
     if(val < 10)
     {
-      tft_writexy_plus(1, TFT_ORANGE, TFT_BLACK, 20,4,5,0,(uint8_t *)s);
+      tft_writexy_plus(1, TFT_ORANGE, TFT_BACKGROUND, 20,4,5,0,(uint8_t *)s);
       //tft.drawRoundRect(275, 100, 35, 40, 10, TFT_ORANGE);
     }
     else
     {
-      tft_writexy_plus(1, TFT_ORANGE, TFT_BLACK, 19,4,5,0,(uint8_t *)s);
+      tft_writexy_plus(1, TFT_ORANGE, TFT_BACKGROUND, 19,4,5,0,(uint8_t *)s);
       //tft.drawRoundRect(260, 100, 50, 40, 10, TFT_ORANGE);
     }
   }
   else  //fill with black = erase = close the window
   {
-    tft.fillRoundRect(260, 100, 50, 40, 10, TFT_BLACK);
+    tft.fillRoundRect(260, 100, 50, 40, 10, TFT_BACKGROUND);
   }
 }
 

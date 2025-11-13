@@ -5,9 +5,9 @@
 extern "C" {
 #endif
 
+#define DEBUG
 
-
-#define ROTATION_SETUP  2   // 0, 1, 2 or 3
+#define ROTATION_SETUP  3   // 0, 1, 2 or 3
 
 
 #if ROTATION_SETUP == 0 || ROTATION_SETUP == 2
@@ -41,7 +41,7 @@ extern "C" {
 #define Y_CHAR2  32
 #define SIZE2    1
 
-#define FONT1 &FreeMonoBold12pt7b
+#define FONT1 &FreeMono9pt7b
 #define X_CHAR1  14
 #define Y_CHAR1  22
 #define SIZE1    1
@@ -75,7 +75,10 @@ extern "C" {
 #define TFT_SILVER      0xC618      /* 192, 192, 192 */
 #define TFT_SKYBLUE     0x867D      /* 135, 206, 235 */
 #define TFT_VIOLET      0x915C      /* 180,  46, 226 */
-
+#define TFT_DARKBLUE    0x0809      // added 
+#define TFT_DARKPURPLE  0x384C      //added 
+#define TFT_EMERALD     0x07f7      // added 
+#define TFT_BACKGROUND  TFT_BLACK     // added general background color 
 /*
 uint16_t red =    tft.color565(255, 0, 0);
 uint16_t green =  tft.color565(0, 255, 0);
@@ -83,12 +86,22 @@ uint16_t blue =   tft.color565(0, 0, 255);
 uint16_t yellow = tft.color565(255, 255, 0);
 */
 
+
+
+// S Meter
+#define bargraph_Y   55  //smeter y
+#define bargraph_dY  10    //block high
+#define bargraph_X   0     //initial column 
+#define bargraph_dX  16    //block wide
+#define bargraph_dX_space  2  //space between blocks
+
+
 // scope graph
 //#define AUD_GRAPH_NUM_COLS  100
 #define AUD_GRAPH_MIN       -25
 #define AUD_GRAPH_MAX       25
 #define X_MIN_AUD_GRAPH     215
-#define Y_MIN_AUD_GRAPH     30
+#define Y_MIN_AUD_GRAPH     105
 #define Y_MAX_AUD_GRAPH     (Y_MIN_AUD_GRAPH + AUD_GRAPH_MAX - AUD_GRAPH_MIN)
 
 
@@ -124,8 +137,8 @@ void TxPower_bargraph(int16_t index_new);
 
 void display_fft_graf(uint16_t freq);
 void display_fft_graf_top(void);
-void display_tft_setup0(void);
-void display_tft_setup(void);
+void display_intro(void);
+void display_oscilloscope_legend(void);
 void display_tft_countdown(bool show, uint16_t val);
 void display_tft_loop(void);
 
