@@ -3,7 +3,8 @@
 ## by Klaus Fensterseifer - PY2KLA
 ### (based on Arjan te Marvelde / uSDR-pico)
 
-This fork uses a modified UI and different pushbutton functionality. Also 16 predefined bands can now be selected with the encoder. 
+This fork uses a modified UI and different pushbutton functionality. I also included 16 predefined bands that can be selected with the encoder. 
+
 
 ![uSDR-PICO FFT](20251111_111114.jpg)
 
