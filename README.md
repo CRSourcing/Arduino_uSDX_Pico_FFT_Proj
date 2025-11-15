@@ -3,17 +3,16 @@
 ## by Klaus Fensterseifer - PY2KLA
 ### (based on Arjan te Marvelde / uSDR-pico)
 
-This fork uses a modified UI with different pushbutton functionality. I also included 16 predefined bands that can be selected with the encoder. 
+This fork creates a modified UI with different pushbutton functionality. I also included 16 predefined bands that can be selected with the encoder. 
+Audio record and save to flash heve been removed sice both did not work for me. 
 
-New UI
-![uSDR-PICO FFT](20251111_111114.jpg)
-
-
+New UI:
 
 ![uSDR-PICO FFT](20251115_102630.jpg)
 
 
-Original UI
+Original UI:
+
 ![uSDR-PICO FFT](Pict1.png)
 
 This project is a QSD/QSE Software Defined HF Transceiver (SDR), 5 Band, Low Power, based on  Arjan te Marvelde / uSDR-pico, from https://github.com/ArjanteMarvelde/uSDR-pico.<br>
