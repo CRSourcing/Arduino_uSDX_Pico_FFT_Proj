@@ -146,13 +146,10 @@ char hmi_o_mode[HMI_NUM_OPT_MODE][8] = { "USB", "LSB", "AM ", "CW " };          
 char hmi_o_agc[HMI_NUM_OPT_AGC][8] = { "OFF", "Slow ", "Fast " };                      // Indexed by band_vars[hmi_band][HMI_S_AGC]
 char hmi_o_pre[HMI_NUM_OPT_PRE][8] = { "-30dB", "-20dB", "-10dB", "0dB  ", "+10dB" };  // Indexed by band_vars[hmi_band][HMI_S_PRE]
 char hmi_o_vox[HMI_NUM_OPT_VOX][8] = { "OFF", "LOW", "Mid", "HIGH" };                  // Indexed by band_vars[hmi_band][HMI_S_VOX]                                                            //index for NoVOX option
-char hmi_o_bpf[NUMBER_OF_BANDS][16] =                  { "<2.5", "2-6", "5-12", "5-12","10-24", "10-24","10-24","20-40"
-                                                       , "20-40", "20-40","20-40", "<2.5", "2-6", "5-12", "10-24","20-40"};
+char hmi_o_bpf[NUMBER_OF_BANDS][16] = { "<2.5", "2-6", "5-12", "5-12", "10-24", "10-24", "10-24", "20-40", "20-40", "20-40", "20-40", "<2.5", "2-6", "5-12", "10-24", "20-40" };
 
 
-const char hmi_o_band_name_displayed [NUMBER_OF_BANDS][20] = { "Amateur-160m", "Amateur-80m", "Amateur-40m", "Amateur-30m", "Amateur-20m"
-                                                       , "Amateur-17m","Amateur-15m","Amateur-12m", "Citizen Band", "Amateur-10m/1" 
-                                                       ,"Amateur-10m/2", "AM Radio", "2-6MHz", "6-12MHz", "12-24MHz", "24-40MHz"};
+const char hmi_o_band_name_displayed[NUMBER_OF_BANDS][20] = { "Amateur-160m", "Amateur-80m", "Amateur-40m", "Amateur-30m", "Amateur-20m", "Amateur-17m", "Amateur-15m", "Amateur-12m", "Citizen Band", "Amateur-10m/1", "Amateur-10m/2", "AM Radio", "2-6MHz", "6-12MHz", "12-24MHz", "24-40MHz" };
 
 
 
@@ -160,42 +157,42 @@ const char hmi_o_band_name_displayed [NUMBER_OF_BANDS][20] = { "Amateur-160m", "
 
 // Lower frequency limits in Hz
 const uint32_t band_lower_limit[NUMBER_OF_BANDS] = {
-    1800000,   // Amateur-160m
-    3500000,   // Amateur-80m
-    7000000,   // Amateur-40m
-    10100000,  // Amateur-30m
-    14000000,  // Amateur-20m
-    18068000,  // Amateur-17m
-    21000000,  // Amateur-15m
-    24890000,  // Amateur-12m
-    26965000,  // Citizen Band (CB)
-    28000000,  // Amateur-10m/1
-    28400000,  // Amateur-10m/2
-    520000,    // AM Radio
-    2000000,   // Shortwave 2–6 MHz
-    6000000,   // Shortwave 6–12 MHz
-    12000000,  // Shortwave 12–24 MHz
-    24000000   // Shortwave 24–40 MHz
+  1800000,   // Amateur-160m
+  3500000,   // Amateur-80m
+  7000000,   // Amateur-40m
+  10100000,  // Amateur-30m
+  14000000,  // Amateur-20m
+  18068000,  // Amateur-17m
+  21000000,  // Amateur-15m
+  24890000,  // Amateur-12m
+  26965000,  // Citizen Band (CB)
+  28000000,  // Amateur-10m/1
+  28400000,  // Amateur-10m/2
+  520000,    // AM Radio
+  2000000,   // Shortwave 2–6 MHz
+  6000000,   // Shortwave 6–12 MHz
+  12000000,  // Shortwave 12–24 MHz
+  24000000   // Shortwave 24–40 MHz
 };
 
 // Upper frequency limits in Hz
 const uint32_t band_upper_limit[NUMBER_OF_BANDS] = {
-    2000000,   // Amateur-160m
-    4000000,   // Amateur-80m
-    7300000,   // Amateur-40m
-    10150000,  // Amateur-30m
-    14350000,  // Amateur-20m
-    18168000,  // Amateur-17m
-    21450000,  // Amateur-15m
-    24990000,  // Amateur-12m
-    27700000,  // Citizen Band (CB)
-    28400000,  // Amateur-10m/1
-    29700000,  // Amateur-10m/2
-    1710000,   // AM Radio
-    6000000,   // Shortwave 2–6 MHz
-    12000000,  // Shortwave 6–12 MHz
-    24000000,  // Shortwave 12–24 MHz
-    40000000   // Shortwave 24–40 MHz
+  2000000,   // Amateur-160m
+  4000000,   // Amateur-80m
+  7300000,   // Amateur-40m
+  10150000,  // Amateur-30m
+  14350000,  // Amateur-20m
+  18168000,  // Amateur-17m
+  21450000,  // Amateur-15m
+  24990000,  // Amateur-12m
+  27700000,  // Citizen Band (CB)
+  28400000,  // Amateur-10m/1
+  29700000,  // Amateur-10m/2
+  1710000,   // AM Radio
+  6000000,   // Shortwave 2–6 MHz
+  12000000,  // Shortwave 6–12 MHz
+  24000000,  // Shortwave 12–24 MHz
+  40000000   // Shortwave 24–40 MHz
 };
 
 
@@ -206,48 +203,48 @@ const uint32_t band_upper_limit[NUMBER_OF_BANDS] = {
 
 // Map option to setting
 uint8_t hmi_pre[5] = { REL_ATT_30, REL_ATT_20, REL_ATT_10, REL_ATT_00, REL_PRE_10 };
-uint8_t hmi_bpf[16] = { REL_LPF2, REL_BPF6, REL_BPF12, REL_BPF12, REL_BPF24, REL_BPF24 ,REL_BPF24, REL_BPF40, 
-                        REL_BPF40, REL_BPF40, REL_BPF40, REL_LPF2, REL_BPF6,REL_BPF12, REL_BPF24, REL_BPF40};
+uint8_t hmi_bpf[16] = { REL_LPF2, REL_BPF6, REL_BPF12, REL_BPF12, REL_BPF24, REL_BPF24, REL_BPF24, REL_BPF40,
+                        REL_BPF40, REL_BPF40, REL_BPF40, REL_LPF2, REL_BPF6, REL_BPF12, REL_BPF24, REL_BPF40 };
 
-uint8_t hmi_menu;             // menu section 0=Tune/cursor 1=Mode 2=AGC 3=Pre 4=VOX 5=Band 6=Mem  (old hmi_state)
-int8_t hmi_menu_opt_display;  // current menu option showing on display (it will be copied to band vars on <enter>)  (old hmi_option) // was uint, changed to int to loop the cursor
-uint8_t hmi_band = START_BAND;             // actual band, start with predefined band
-
-
-//                                             10 Presets with 6 menus    0=Tune/cursor 1=Mode 2=AGC 3=Pre 4=VOX 5=Band 
-uint8_t band_vars[NUMBER_OF_BANDS][NUMBER_OF_MENUES] = {  
-                                                        { 4, 1, 2, 3, 0, 0},
-                                                        { 4, 1, 2, 3, 0, 1},
-                                                        { 4, 1, 2, 3, 0, 2},
-                                                        { 4, 0, 2, 3, 0, 3},
-                                                        { 4, 0, 2, 3, 0, 4}, 
-                                                        { 4, 0, 2, 3, 0, 5},
-                                                        { 4, 0, 2, 3, 0, 6},
-                                                        { 4, 0, 2, 3, 0, 7},
-                                                        { 4, 0, 2, 3, 0, 8},
-                                                        { 4, 0, 2, 3, 0, 9},
-                                                        { 4, 0, 2, 3, 0, 10},
-                                                        { 4, 2, 2, 3, 0, 11},
-                                                        { 4, 2, 2, 3, 0, 12},
-                                                        { 4, 2, 2, 3, 0, 13},
-                                                        { 4, 2, 2, 3, 0, 14},
-                                                        { 4, 2, 2, 3, 0, 15}
-                                                        };
-
-uint32_t band_starting_freq [NUMBER_OF_BANDS] = {b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15};
+uint8_t hmi_menu;               // menu section 0=Tune/cursor 1=Mode 2=AGC 3=Pre 4=VOX 5=Band 6=Mem  (old hmi_state)
+int8_t hmi_menu_opt_display;    // current menu option showing on display (it will be copied to band vars on <enter>)  (old hmi_option) // was uint, changed to int to loop the cursor
+uint8_t hmi_band = START_BAND;  // actual band, start with predefined band
 
 
-uint32_t hmi_freq;                                                                                      // Frequency from Tune state
+//                                             10 Presets with 6 menus    0=Tune/cursor 1=Mode 2=AGC 3=Pre 4=VOX 5=Band
+uint8_t band_vars[NUMBER_OF_BANDS][NUMBER_OF_MENUES] = {
+  { 4, 1, 2, 3, 0, 0 },
+  { 4, 1, 2, 3, 0, 1 },
+  { 4, 1, 2, 3, 0, 2 },
+  { 4, 0, 2, 3, 0, 3 },
+  { 4, 0, 2, 3, 0, 4 },
+  { 4, 0, 2, 3, 0, 5 },
+  { 4, 0, 2, 3, 0, 6 },
+  { 4, 0, 2, 3, 0, 7 },
+  { 4, 0, 2, 3, 0, 8 },
+  { 4, 0, 2, 3, 0, 9 },
+  { 4, 0, 2, 3, 0, 10 },
+  { 4, 2, 2, 3, 0, 11 },
+  { 4, 2, 2, 3, 0, 12 },
+  { 4, 2, 2, 3, 0, 13 },
+  { 4, 2, 2, 3, 0, 14 },
+  { 4, 2, 2, 3, 0, 15 }
+};
 
-const uint32_t hmi_step[HMI_NUM_OPT_TUNE] = { 10000000L, 1000000L, 100000L, 10000L, 1000L, 100L, 10L };       // Frequency digit increments (tune option = cursor position)
+uint32_t band_starting_freq[NUMBER_OF_BANDS] = { b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15 };
 
-const uint32_t hmi_minfreq[NUMBER_OF_BANDS] = { 0000000L, 2000000L,  5000000L, 5000000L,  10000000L, 10000000L, 10000000L, 20000000L , 20000000L, 20000000L, 20000000L, 000000L, 2000000L, 5000000L, 10000000L, 20000000L};   // min freq for each band from pass band filters
-const uint32_t hmi_maxfreq[NUMBER_OF_BANDS] = { 2500000L, 6000000L, 12000000L, 12000000L, 24000000L, 24000000L, 24000000L, 40000000L , 40000000L, 40000000L, 40000000L, 2500000L, 6000000L, 12000000L,24000000L, 40000000L};  // max freq for each band from pass band filters
+
+uint32_t hmi_freq;  // Frequency from Tune state
+
+const uint32_t hmi_step[HMI_NUM_OPT_TUNE] = { 10000000L, 1000000L, 100000L, 10000L, 1000L, 100L, 10L };  // Frequency digit increments (tune option = cursor position)
+
+const uint32_t hmi_minfreq[NUMBER_OF_BANDS] = { 0000000L, 2000000L, 5000000L, 5000000L, 10000000L, 10000000L, 10000000L, 20000000L, 20000000L, 20000000L, 20000000L, 000000L, 2000000L, 5000000L, 10000000L, 20000000L };      // min freq for each band from pass band filters
+const uint32_t hmi_maxfreq[NUMBER_OF_BANDS] = { 2500000L, 6000000L, 12000000L, 12000000L, 24000000L, 24000000L, 24000000L, 40000000L, 40000000L, 40000000L, 40000000L, 2500000L, 6000000L, 12000000L, 24000000L, 40000000L };  // max freq for each band from pass band filters
 
 #ifdef PY2KLA_setup
 #define HMI_MULFREQ 4  // Factor between HMI and actual frequency
 #else
-#define HMI_MULFREQ 1  // Factor between HMI and actual frequency 
+#define HMI_MULFREQ 1  // Factor between HMI and actual frequency \
                        // Set to 1, 2 or 4 for certain types of mixer
 #endif
 
@@ -263,7 +260,7 @@ bool ptt_vox_active = false;  //if vox whants to transmit
 bool ptt_mon_active = false;
 bool ptt_aud_active = false;
 
-
+uint8_t sel_graph = 6; // select scope graphic
 
 
 
@@ -273,14 +270,13 @@ bool ptt_aud_active = false;
 //
 // get info from actual band = freq -> and store it at band_vars
 // when switching back to that band, it will be at the same freq and setup
-// 
+//
 //
 //***********************************************************************
 void Store_Last_Band(uint8_t band) {
 
 
   band_starting_freq[band] = hmi_freq;
-
 }
 
 
@@ -292,9 +288,9 @@ void Store_Last_Band(uint8_t band) {
 void Setup_Band(uint8_t band) {
   uint16_t j;
 
-char s [80];
+  char s[80];
 
-hmi_freq = band_starting_freq[band];
+  hmi_freq = band_starting_freq[band];
 
 
   if (hmi_freq > hmi_maxfreq[band])  //checking boundaries
@@ -306,7 +302,7 @@ hmi_freq = band_starting_freq[band];
     hmi_freq = hmi_minfreq[band];
   }
 
-print_Band(band);
+  print_Band(band);
 
 
   //set the new band to display and freq
@@ -341,30 +337,32 @@ print_Band(band);
 
 void print_Band(uint8_t band) {
 
-        
-        if (band < 12) // Amateur bands
-          sprintf(s, "%s: "  "%lu-%lu KHz", hmi_o_band_name_displayed [band], band_lower_limit[band] / 1000,  band_upper_limit[band] /1000) ;
-        else
-           sprintf(s, " Shortwave %s ", hmi_o_band_name_displayed [band]) ;
 
-        tft.fillRect(0, 72, 240, 8, TFT_BACKGROUND);  //clear menu selection
-        tft.setTextFont(1);
-        tft.setCursor(0,72);
-        if (hmi_o_band_name_displayed [hmi_menu_opt_display][7] == '-'){ // Amateur band label 7th characer is -, for example Amateur-20m
-         
-        
-         tft.setTextColor(TFT_GREEN, TFT_BLACK);
-         tft.print(s);
-        }
-        
-       else {
+  if (band < 12)  // Amateur bands
+    sprintf(s, "%s: "
+               "%lu-%lu KHz",
+            hmi_o_band_name_displayed[band], band_lower_limit[band] / 1000, band_upper_limit[band] / 1000);
+  else
+    sprintf(s, " Shortwave %s ", hmi_o_band_name_displayed[band]);
 
-        tft.setTextColor(TFT_YELLOW, TFT_BLACK);
-         tft.print(s);
-       }
-        
-      tft.setFreeFont(FONT1);  
-     Serialx.println(s);
+  tft.fillRect(0, 72, 240, 8, TFT_BACKGROUND);  //clear menu selection
+  tft.setTextFont(1);
+  tft.setCursor(0, 72);
+  if (hmi_o_band_name_displayed[hmi_menu_opt_display][7] == '-') {  // Amateur band label 7th characer is -, for example Amateur-20m
+
+
+    tft.setTextColor(TFT_GREEN, TFT_BLACK);
+    tft.print(s);
+  }
+
+  else {
+
+    tft.setTextColor(TFT_YELLOW, TFT_BLACK);
+    tft.print(s);
+  }
+
+  tft.setFreeFont(FONT1);
+  Serialx.println(s);
 }
 
 
@@ -373,11 +371,10 @@ void print_Band(uint8_t band) {
 
 
 void hmi_handler(uint8_t event) {
-  
-  
+
+
   uint8_t hmi_menu_last = HMI_S_BPF;  //Always start with bands menue
-  
-  
+
 
   if ((event == HMI_PTT_ON) && (ptt_internal_active == false))  //if internal is taking the ptt control, not from mike, ignores mike
   {
@@ -386,71 +383,42 @@ void hmi_handler(uint8_t event) {
     ptt_external_active = false;
   }
 
-
-  
-
-
-
   /* Special case for TUNE state */
   if (hmi_menu == HMI_S_TUNE)  //We are on main menu
   {
 
-    if (event == HMI_E_ENTER) { // ENTER now sets mode
-          band_vars[hmi_band][HMI_S_MODE] ++; 
-        if (band_vars[hmi_band][HMI_S_MODE] > 3)
-           band_vars[hmi_band][HMI_S_MODE] = 0;
-          hmi_menu_opt_display = band_vars[hmi_band][HMI_S_MODE];    
+    if (event == HMI_E_ENTER) {  // ENTER now sets mode
+      band_vars[hmi_band][HMI_S_MODE]++;
+      if (band_vars[hmi_band][HMI_S_MODE] > 3)
+        band_vars[hmi_band][HMI_S_MODE] = 0;
+      hmi_menu_opt_display = band_vars[hmi_band][HMI_S_MODE];
     }
-      
-    if (event == HMI_E_ESCAPE)  // Enter submenus
+
+    if (event == HMI_E_SUBMENU)  // Enter submenus
     {
       //band_vars[hmi_band][hmi_menu] = hmi_menu_opt_display;							// Store cursor position on TUNE
       hmi_menu = hmi_menu_last;  // go to last menu selected before TUNE
 
- 
+
 
       hmi_menu_opt_display = band_vars[hmi_band][hmi_menu];  // Restore selection of new menu
-    } 
-    
-    
+    }
+
+
     else if (event == HMI_E_INCREMENT) {
-      if (!gpio_get(GP_AUX_0_Enter))  //Press Enter + encoder to change waterfall gain
-                                      
-      {
-        if (fft_gain < (1 << FFT_GAIN_SHIFT)) {
-          fft_gain++;
-        }
-      } else {
-        
-           hmi_freq += hmi_step[hmi_menu_opt_display];          // Increment selected digit
-      
-          if(hmi_freq > band_upper_limit[hmi_band])   {              // Limit to upper band limit
-             hmi_freq = band_upper_limit[hmi_band];
-          
-          }
 
+      hmi_freq += hmi_step[hmi_menu_opt_display];  // Increment selected digit
 
+      if (hmi_freq > band_upper_limit[hmi_band]) {  // Limit to upper band limit
+        hmi_freq = band_upper_limit[hmi_band];
       }
     } else if (event == HMI_E_DECREMENT) {
-      if (!gpio_get(GP_AUX_0_Enter))  //Press Enter + encoder to change waterfall gain
-  
-  
-      {
-
-        if (fft_gain > 1) {
-          fft_gain--;
-        }
-      } else {
-      
-         hmi_freq -= hmi_step[hmi_menu_opt_display];             // Decrement selected digit
-             if(hmi_freq < band_lower_limit[hmi_band])   {       // Limit to upper band limit
-             hmi_freq = band_lower_limit[hmi_band];
-         
-          }
-      
+      hmi_freq -= hmi_step[hmi_menu_opt_display];   // Decrement selected digit
+      if (hmi_freq < band_lower_limit[hmi_band]) {  // Limit to upper band limit
+        hmi_freq = band_lower_limit[hmi_band];
       }
     }
-    
+
     if (event == HMI_E_RIGHT) {  // cursor position
       // Move selection to the right, but don't exceed max
       if (hmi_menu_opt_display < HMI_NUM_OPT_TUNE - 1) {
@@ -459,7 +427,7 @@ void hmi_handler(uint8_t event) {
 
       // Wrap around if above 6
       if (hmi_menu_opt_display > 6) {
-        hmi_menu_opt_display = 0;
+        hmi_menu_opt_display = -1;
       }
 
       // Update band variable
@@ -468,12 +436,12 @@ void hmi_handler(uint8_t event) {
 
     if (event == HMI_E_LEFT) {
 
-      if (hmi_menu_opt_display >= 0) {
+      if (hmi_menu_opt_display > 0) {
         hmi_menu_opt_display--;
       }
 
       // Wrap around if at 0
-      if (hmi_menu_opt_display < 0) {
+      if (hmi_menu_opt_display == 0) {
         hmi_menu_opt_display = 6;
       }
 
@@ -482,18 +450,22 @@ void hmi_handler(uint8_t event) {
     }
 
   } else  //in submenus
-  
+
   {
+
     
 
+    
     /* Submenu states */
     switch (hmi_menu) {
 
-    // menu section 0=Tune/cursor 1=Mode 2=AGC 3=Pre 4=VOX 5=Band 
+        
+        // menu section 0=Tune/cursor 1=Mode 2=AGC 3=Pre 4=VOX 5=Band
 
+     
       case HMI_S_MODE:
 
-        if (band_vars[hmi_band][HMI_S_MODE] == MODE_CW)  // need to make room for CW decoder 
+        if (band_vars[hmi_band][HMI_S_MODE] == MODE_CW)  // need to make room for CW decoder
           tft.fillRect(0, 0, 360, 16, TFT_BACKGROUND);
 
       case HMI_S_AGC:
@@ -517,40 +489,62 @@ void hmi_handler(uint8_t event) {
       case HMI_S_BPF:
         if (event == HMI_E_INCREMENT)
           hmi_menu_opt_display = (hmi_menu_opt_display < NUMBER_OF_BANDS - 1) ? hmi_menu_opt_display + 1 : NUMBER_OF_BANDS - 1;
-        
         else if (event == HMI_E_DECREMENT)
           hmi_menu_opt_display = (hmi_menu_opt_display > 0) ? hmi_menu_opt_display - 1 : 0;
         break;
-    
+      case HMI_S_FFT:
+        if (event == HMI_E_INCREMENT)
+          fft_gain++;
+        else if (event == HMI_E_DECREMENT)
+          fft_gain--;
+        break;  
+         case HMI_S_OSC:
+        if (event == HMI_E_INCREMENT && sel_graph == 6)
+          sel_graph = 0;
+        else if (event == HMI_E_INCREMENT && sel_graph < 6)
+          sel_graph++;
+
+        else if (event == HMI_E_DECREMENT && sel_graph)
+          sel_graph--;    
+
+        break;
     }
 
     /* General actions for all submenus */
 
-    if (hmi_menu == HMI_S_BPF) 
+
+    
+
+    if (event == HMI_E_ENTER) {
+      ptt_external_active = !ptt_external_active; // for tx debugging
+      tx_enabled = !tx_enabled;
+      tx_enable_changed = true;
+      return;
+    } 
+
+    if (hmi_menu == HMI_S_BPF)
       hmi_band = hmi_menu_opt_display;  //band changed
     else {
-      
-          hmi_menu = constrain(hmi_menu, 2,5);  // 2=AGC 3=Pre 4=VOX 5=Band
-      
+
+      hmi_menu = constrain(hmi_menu, 2, 7);  // 2=AGC 3=Pre 4=VOX 5=Band
+
       band_vars[hmi_band][hmi_menu] = hmi_menu_opt_display;  // Store selected option
-    
     }
-  
-    if (event == HMI_E_ESCAPE) {
+
+    if (event == HMI_E_SUBMENU) {
 
       {
-       
+
         hmi_menu_last = hmi_menu;
         hmi_menu = HMI_S_TUNE;                                 // Leave submenus
-        hmi_menu_opt_display = band_vars[hmi_band][hmi_menu];  // Restore selection of new state      
-  
+        hmi_menu_opt_display = band_vars[hmi_band][hmi_menu];  // Restore selection of new state
       }
     } else if (event == HMI_E_RIGHT) {
       hmi_menu = (hmi_menu < NUMBER_OF_MENUES - 1) ? (hmi_menu + 1) : 1;  // Change submenu
-      hmi_menu_opt_display = band_vars[hmi_band][hmi_menu];         // Restore selection of new state
+      hmi_menu_opt_display = band_vars[hmi_band][hmi_menu];               // Restore selection of new state
     } else if (event == HMI_E_LEFT) {
       hmi_menu = (hmi_menu > 1) ? (hmi_menu - 1) : NUMBER_OF_MENUES - 1;  // Change submenu
-      hmi_menu_opt_display = band_vars[hmi_band][hmi_menu];         // Restore selection of new state
+      hmi_menu_opt_display = band_vars[hmi_band][hmi_menu];               // Restore selection of new state
     }
   }
 }
@@ -591,7 +585,7 @@ void hmi_callback(uint gpio, uint32_t events) {
       break;
     case GP_AUX_1_Escape:  // Escape
       if (events & GPIO_IRQ_EDGE_FALL) {
-        evt = HMI_E_ESCAPE;
+        evt = HMI_E_SUBMENU;
       }
       break;
     case GP_AUX_2_Left:  // Previous
@@ -636,15 +630,15 @@ void hmi_callback(uint gpio, uint32_t events) {
  */
 void hmi_init0(void) {
   // Initialize LCD and set VFO
-  Setup_Band(hmi_band);      //                                                             why was commented out?
-                             //  menu position = Tune  and  cursor position = hmi_menu_opt_display
+  Setup_Band(hmi_band);  //                                                             why was commented out?
+                         //  menu position = Tune  and  cursor position = hmi_menu_opt_display
   hmi_menu = HMI_S_TUNE;
   hmi_menu_opt_display = band_vars[hmi_band][HMI_S_TUNE];  // option on Tune is the cursor position
 
   Serialx.println("TUNE " + String(hmi_band));
   Serialx.println("hmi_menu  " + String(hmi_menu));
   Serialx.println("hmi_menu_opt_display " + String(hmi_menu_opt_display));
-  
+
 
   CwDecoder_InicTable();  //fill table on running time
 }
@@ -827,13 +821,17 @@ void hmi_smeter(void) {
   }
 
   if (fft_gain_old != fft_gain) {
+    tft.setTextColor(TFT_MAGENTA);
+    sprintf(s, "Set TFT gain: %d      ", fft_gain);
+    tft.fillRect(0, 0, 320, 15, TFT_BLACK);
+    tft_writexy_(1, TFT_MAGENTA, TFT_BACKGROUND, 0, 0, (uint8_t *)s);
     sprintf(s, "%d", fft_gain);
     s[3] = 0;
     tft.setFreeFont(FONT1);
     tft.fillRect(0, 142, 160, 15, TFT_DARKPURPLE);
     tft.setCursor(15, 155);
     tft.setTextColor(TFT_ORANGE);
-    tft.print("WFGAIN: ");
+    tft.print("TFTGAIN:");
     tft.print(s);
     fft_gain_old = fft_gain;
   }
@@ -856,10 +854,6 @@ void hmi_smeter(void) {
     }
   }
 */
-
-
-
-
 
 
 #if I2C_Arduino_Pro_Mini == 1  //only used when together with Arduino Pro Mini for relays control (and allow SWR reading)
@@ -945,7 +939,7 @@ void hmi_power_swr(void)  //read the swr from Arduino Pro Mini I2C
         sprintf(s, "%d", pow);
       }
       //tft_writexy_(2, TFT_RED, TFT_BACKGROUND, 1,2,(uint8_t *)s);
-      tft_writexy_plus(2, TFT_RED, TFT_BACKGROUND, 0, x_RT + (1 * X_CHAR2), 0, y_RT, (uint8_t *)s);
+      tft_writexy_plus(15, TFT_RED, TFT_BACKGROUND, 0, x_RT + (1 * X_CHAR2), 0, y_RT, (uint8_t *)s);
 
       //TxPower_bargraph((int16_t)(((double)pow * ((double)SWR_POW_MAX / (double)SWR_BARGRAPH_MAX)+(double)0.5));  //division in case we have more power than bargraph steps
       TxPower_bargraph(pow);
@@ -983,7 +977,7 @@ void hmi_power_swr(void)  //read the swr from Arduino Pro Mini I2C
  */
 void hmi_evaluate(void)  //hmi loop
 {
-  static uint8_t band_vars_old[NUMBER_OF_MENUES] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};  // Stored last option selection
+  static uint8_t band_vars_old[NUMBER_OF_MENUES] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };  // Stored last option selection
   static uint32_t hmi_freq_old = 0xff;
   static uint8_t hmi_band_old = hmi_band;
   static bool tx_enable_old = true;
@@ -1013,49 +1007,53 @@ void hmi_evaluate(void)  //hmi loop
   // if band_var changed (after <enter>), set parameters accordingly
 
   if (hmi_freq_old != hmi_freq || tx_enable_changed) {
-    //tft.fillRect(0, 15, 230, 33, TFT_BLACK);
+
     if (hmi_freq > 40000000L)
       hmi_freq = 40000000L;  // limit to 40MHz
 
     SI_SETFREQ(0, HMI_MULFREQ * hmi_freq);
     //freq  (from encoder)
 
+
     double K = (double)(hmi_freq / 1000000.0) * 1000;
     sprintf(s, "%7.2f", K);  // Always 7 characters wide
-    char oldFreq[20]; 
-    uint16_t tColor = tx_enabled ? TFT_RED : TFT_GREEN;
+    char oldFreq[20];
 
-
-    tft.setTextColor(tColor);
     tft.setFreeFont(FONT3);
-
-int fixedRightX = 220;
-int textWidth = tft.textWidth(s);
-int startX = fixedRightX - textWidth;
-
-
-#define X_CHAR3  28
-#define Y_CHAR3  42
-  
-  int digitWidth = X_CHAR3;                             // reduce flicker by only rewriting the digit that has changed
-  int fontHeight = Y_CHAR3; 
-  
-  int x = startX;
-  int y = 45;
+    
+    if (tx_enabled)
+    tft.setTextColor(TFT_RED);
+    else
+    tft.setTextColor(TFT_GREEN); 
+    
+    
+    int fixedRightX = 220;
+    int textWidth = tft.textWidth(s);
+    int startX = fixedRightX - textWidth;
 
 
-if (hmi_freq < 10000000 && hmi_freq_old >= 10000000)
-  tft.fillRect(0, y - fontHeight + 10, digitWidth, fontHeight -5, TFT_BLACK);
+#define X_CHAR3 28
+#define Y_CHAR3 42
 
-for (int i=0; i<strlen(s); i++) {
-  if (s[i] != oldFreq[i]) {
-    tft.fillRect(x + i*digitWidth, y - fontHeight + 10, digitWidth, fontHeight -5, TFT_BLACK);
-    tft.setCursor(x + i*digitWidth, y);
-    tft.print(s[i]);
-  }
-}
-     strcpy(oldFreq, s);
-   tft.setFreeFont(FONT1);
+    int digitWidth = X_CHAR3;  // reduce flicker by only rewriting the digit that has changed
+    int fontHeight = Y_CHAR3;
+
+    int x = startX;
+    int y = 45;
+
+
+    if (hmi_freq < 10000000 && hmi_freq_old >= 10000000)
+      tft.fillRect(0, y - fontHeight + 10, digitWidth, fontHeight - 5, TFT_BLACK);
+
+    for (int i = 0; i < strlen(s); i++) {
+      if (s[i] != oldFreq[i]) {
+        tft.fillRect(x + i * digitWidth, y - fontHeight + 10, digitWidth, fontHeight - 5, TFT_BLACK);
+        tft.setCursor(x + i * digitWidth, y);
+        tft.print(s[i]);
+      }
+    }
+    strcpy(oldFreq, s);
+    tft.setFreeFont(FONT1);
 
     //cursor (writing the freq erase the cursor)
     tft_cursor_plus(3, TFT_BLUE, 0 + (band_vars[hmi_band][HMI_S_TUNE] > 4 ? band_vars[hmi_band][HMI_S_TUNE] + 1 : band_vars[hmi_band][HMI_S_TUNE]), 0, 0, 12);
@@ -1091,7 +1089,7 @@ for (int i=0; i<strlen(s); i++) {
   }
   if (hmi_band_old != hmi_band) {
     Store_Last_Band(hmi_band_old);  // store data from old band (save freq to have it when back to this band)
-    
+
     //relay_setband(hmi_band);  // = hmi_band
     sleep_ms(1);              // I2C doesn't work without...
     Setup_Band(hmi_band);     // = hmi_band  get the new band data
@@ -1109,17 +1107,23 @@ for (int i=0; i<strlen(s); i++) {
   if (tx_enable_old != tx_enabled) {
     //erase the area for T or R, infos and the bar graph area
     //tft.fillRect(x_RT, y_RT, (6*X_CHAR1), (3*Y_CHAR1), TFT_BACKGROUND);   // TFT_LIGHTGREY);  TFT_BACKGROUND);
+     
+     tft.fillRect(210,55, 25, 16, TFT_BLACK);
 
     if (tx_enabled == true) {
-      //tft.drawRoundRect(x_RT-9, y_RT-8, (6*X_CHAR1)+17, (3*Y_CHAR1)+9, 10, TFT_RED);
-      //tft_writexy_plus(2, TFT_RED, TFT_BACKGROUND, 0, x_RT, 0, y_RT, (uint8_t *)"T");
+
+        tft.setTextColor(TFT_RED);
+        tft.setCursor(210, 65);
+        tft.print("TX");         
+    
 #if I2C_Arduino_Pro_Mini == 1  //using Arduino Pro Mini for relays control (and allow SWR reading)
-      tft_writexy_plus(1, TFT_RED, TFT_BACKGROUND, 0, x_xGain, 0, y_yGain, (uint8_t *)"#0.0");
+      //tft_writexy_plus(1, TFT_RED, TFT_BACKGROUND, 0, x_xGain, 0, y_yGain, (uint8_t *)"#0.0");
 #endif
     } else {
-      //tft.drawRoundRect(x_RT-9, y_RT-8, (6*X_CHAR1)+17, (3*Y_CHAR1)+9, 10, TFT_GREEN);
-      //tft_writexy_plus(2, TFT_GREEN, TFT_BACKGROUND, 0, x_RT, 0, y_RT, (uint8_t *)"R");            //R from "Receive"
-      //tft_writexy_plus(1, TFT_GREEN, TFT_BACKGROUND, 0, x_xGain, 0, y_yGain, (uint8_t *)"x");
+  
+        tft.setCursor(210, 65);
+        tft.print("RX");          
+    
     }
     rec_level_old = rec_level + 1;
 
@@ -1163,7 +1167,7 @@ for (int i=0; i<strlen(s); i++) {
     Serialx.println("hmi_menu_opt_display " + String(hmi_menu_opt_display_old) + " -> " + String(hmi_menu_opt_display));
 #endif
 
-   tft.fillRect(0, 0, 320, 15, TFT_BACKGROUND);  //clear menu information
+    tft.fillRect(0, 0, 320, 15, TFT_BACKGROUND);  //clear menu information
 
     tft.setTextColor(TFT_MAGENTA, TFT_BACKGROUND);
 
@@ -1173,13 +1177,13 @@ for (int i=0; i<strlen(s); i++) {
         tft.setFreeFont(NULL);
 
         sprintf(s, " %s ", hmi_o_mode[band_vars[hmi_band][HMI_S_MODE]]);
-        print_current_mode(s); // 
+        print_current_mode(s);  //
 
         tft.fillRect(0, 85, 160, 58, TFT_DARKPURPLE);
         //tft.fillRoundRect(0,85, 170, 70, 5, TFT_DARKPURPLE);
         //menu
-          
-         sprintf(s, "BPF: %sMHz",  hmi_o_bpf[hmi_band]);  //
+
+        sprintf(s, "BPF: %sMHz", hmi_o_bpf[hmi_band]);  //
         tft.setCursor(15, 95);
         tft.print(s);
 
@@ -1195,7 +1199,7 @@ for (int i=0; i<strlen(s); i++) {
         tft.setCursor(15, 140);
         tft.print(s);
 
-       
+
 
         tft.setFreeFont(FONT1);
         tft_cursor_plus(3, TFT_BLUE, 0 + (band_vars[hmi_band][HMI_S_TUNE] > 4 ? band_vars[hmi_band][HMI_S_TUNE] + 1 : band_vars[hmi_band][HMI_S_TUNE]), 0, 0, 12);  // CURSOR
@@ -1204,8 +1208,8 @@ for (int i=0; i<strlen(s); i++) {
 
       //case HMI_S_MODE:                                                       Mode has seperate button now
       //  sprintf(s, "Set Mode: %s        ", hmi_o_mode[hmi_menu_opt_display]);
-       // tft_writexy_(1, TFT_MAGENTA, TFT_BACKGROUND, 0, 0, (uint8_t *)s);
-       // break;
+      // tft_writexy_(1, TFT_MAGENTA, TFT_BACKGROUND, 0, 0, (uint8_t *)s);
+      // break;
       case HMI_S_AGC:
         sprintf(s, "Set AGC: %s     ", hmi_o_agc[hmi_menu_opt_display]);
         tft_writexy_(1, TFT_MAGENTA, TFT_BACKGROUND, 0, 0, (uint8_t *)s);
@@ -1215,44 +1219,34 @@ for (int i=0; i<strlen(s); i++) {
         tft_writexy_(1, TFT_MAGENTA, TFT_BACKGROUND, 0, 0, (uint8_t *)s);
         break;
       case HMI_S_VOX:
-        sprintf(s, "Set VOX: %    s", hmi_o_vox[hmi_menu_opt_display]);
+        sprintf(s, "Set VOX: %s      ", hmi_o_vox[hmi_menu_opt_display]);
         tft_writexy_(1, TFT_MAGENTA, TFT_BACKGROUND, 0, 0, (uint8_t *)s);
         break;
       case HMI_S_BPF:
-
         sprintf(s, "Set Band          ");  //
         tft.setCursor(0, 10);
         tft.print(s);
-
-      /*
-        //hmi_o_band_name-displayed [hmi_menu_opt_display][10]
-        sprintf(s, " Set: %s", hmi_o_band_name_displayed [hmi_menu_opt_display]);
-      
-        if (hmi_o_band_name_displayed [hmi_menu_opt_display][7] == '-'){ // Amateur band label 7th characer is -, for example Amateur-20m
-        tft.fillRect(0, 0, 320, 15, TFT_BACKGROUND); 
-         tft.setTextColor(TFT_GREEN, TFT_BLACK);
-         tft_writexy_(1, TFT_GREEN, TFT_BACKGROUND, 0, 0, (uint8_t *)s);
-        }
-        
-       else {
-
-        tft.setTextColor(TFT_MAGENTA, TFT_BLACK);
+        break;
+      case HMI_S_FFT:
+        sprintf(s, "Set TFT gain: %d      ", fft_gain);
         tft_writexy_(1, TFT_MAGENTA, TFT_BACKGROUND, 0, 0, (uint8_t *)s);
-       }
-        
-       */
+        break;
+      
+      case HMI_S_OSC:
+        sprintf(s, "Select trace");
+        tft_writexy_(1, TFT_MAGENTA, TFT_BACKGROUND, 0, 0, (uint8_t *)s);
+        break;
+       
         tft.setTextColor(TFT_MAGENTA, TFT_BLACK);
-        tft.fillRect(0, 85, 160, 16, TFT_DARKPURPLE); // update information panel
-        sprintf(s, "BPF: %sMHz",  hmi_o_bpf[hmi_menu_opt_display]);  
+        tft.fillRect(0, 85, 160, 16, TFT_DARKPURPLE);  // update information panel
+        sprintf(s, "BPF: %sMHz", hmi_o_bpf[hmi_menu_opt_display]);
         tft.setCursor(15, 95);
         tft.print(s);
-        
-        sprintf(s, " %s ", hmi_o_mode[band_vars[hmi_band][HMI_S_MODE]]); // update mode 
-        print_current_mode(s); //  
 
+        sprintf(s, " %s ", hmi_o_mode[band_vars[hmi_band][HMI_S_MODE]]);  // update mode
+        print_current_mode(s);                                            //
         break;
-      default:
-        break;
+
     }
 
     hmi_menu_old = hmi_menu;
@@ -1289,6 +1283,4 @@ void print_current_mode(char *s) {
   tft.setFreeFont(FONT1);
   tft.setTextSize(1);
   tft.setTextColor(TFT_ORANGE, TFT_BLACK);
-
 }
-

@@ -84,14 +84,8 @@ Serialx.println("uSDR_setup   relay_init");
  dsp_init();                   // Signal processing unit
 
 
- Serialx.println("uSDR_setup   display_oscilloscope_legend");
- display_oscilloscope_legend();   //moved to setup0 to write into display from the begining 
-
-tft.setCursor (245, 45); // display frequency KHz label
-tft.setFreeFont (FONT2);
-tft.setTextColor(TFT_GREEN);
-tft.print("KHz");
-
+ Serialx.println("uSDR_setup   display_static_elements");
+ display_static_elements();   //moved to setup0 to write into display from the begining 
 
 
 hmi_init0(); 

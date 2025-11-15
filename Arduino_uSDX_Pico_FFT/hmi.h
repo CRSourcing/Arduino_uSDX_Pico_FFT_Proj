@@ -40,15 +40,17 @@ extern "C" {
 #define HMI_S_PRE			3
 #define HMI_S_VOX			4
 #define HMI_S_BPF			5
+#define HMI_S_FFT			6
+#define HMI_S_OSC			7
 
-#define NUMBER_OF_MENUES			6  //number of possible menus
+#define NUMBER_OF_MENUES			8  //number of possible menus
 
 /* Event definitions */
 #define HMI_E_NOEVENT		0
 #define HMI_E_INCREMENT		1
 #define HMI_E_DECREMENT		2
 #define HMI_E_ENTER			3
-#define HMI_E_ESCAPE		4
+#define HMI_E_SUBMENU		4
 #define HMI_E_LEFT			5
 #define HMI_E_RIGHT			6
 #define HMI_E_PTTON			7
@@ -103,7 +105,7 @@ extern uint8_t  band_vars[NUMBER_OF_BANDS][NUMBER_OF_MENUES];
 #define b6  21300000LU
 #define b7  24900000LU
 #define b8  27455000LU
-#define b9  28200000LU
+#define b9  28074000LU
 #define b10 28500000LU
 #define b11  1000000LU
 #define b12 5000000LU
@@ -127,6 +129,7 @@ extern bool ptt_mon_active;
 extern bool ptt_aud_active;
 
 
+extern uint8_t sel_graph; // select scope graphics
 
 void Setup_Band(uint8_t band);
 void hmi_init0(void);

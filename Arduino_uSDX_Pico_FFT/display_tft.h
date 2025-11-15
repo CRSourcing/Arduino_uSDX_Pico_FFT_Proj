@@ -114,6 +114,7 @@ uint16_t yellow = tft.color565(255, 255, 0);
 #define WATERFALL_IN_BLOCK   1   // all lines in the waterfall move with the freq change (not only the new line)
 
 
+
 extern uint8_t vet_graf_fft[GRAPH_NUM_LINES][GRAPH_NUM_COLS];    // [NL][NCOL]
 //extern uint16_t vet_graf_fft_pos;
 
@@ -138,7 +139,7 @@ void TxPower_bargraph(int16_t index_new);
 void display_fft_graf(uint16_t freq);
 void display_fft_graf_top(void);
 void display_intro(void);
-void display_oscilloscope_legend(void);
+void display_static_elements(void);
 void display_tft_countdown(bool show, uint16_t val);
 void display_tft_loop(void);
 

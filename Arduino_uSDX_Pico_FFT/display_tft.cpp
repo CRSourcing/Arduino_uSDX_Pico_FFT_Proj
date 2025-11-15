@@ -21,7 +21,6 @@
 TFT_eSPI tft = TFT_eSPI();
 char vet_char[50];
 
-
 uint16_t font_last = 0;
 uint16_t color_last = 0;
 uint16_t color_back_last = 0;
@@ -576,6 +575,10 @@ void display_aud_graf_var(uint16_t aud_pos, uint16_t aud_var, uint16_t color)
   int16_t x;
   int16_t aud; 
   
+if (aud_var != sel_graph && sel_graph < 6) // 6 means all graphs together
+  return;
+  
+
   for(x=0; x<AUD_GRAPH_NUM_COLS; x++)
   {
     aud = (aud_samp[aud_var][x+aud_pos]);
@@ -710,7 +713,7 @@ void display_intro(void) {
 /*********************************************************
   
 *********************************************************/
-void display_oscilloscope_legend(void) {
+void display_static_elements(void) {
 
 uint16_t xPos = 205, yPos = 95;
 
@@ -719,37 +722,7 @@ uint16_t xPos = 205, yPos = 95;
   tft.setFreeFont(NULL);
 
   tft.setTextSize(1);
- /*
-tft.setCursor(xPos, yPos);
-tft.setTextColor(TFT_GREEN);
-tft.print("I");
 
-tft.setCursor(xPos + 10, yPos);
-tft.setTextColor(TFT_CYAN, TFT_BACKGROUND);
-tft.print("Q");
-
-tft.setCursor(xPos + 20, yPos);
-tft.setTextColor(TFT_PINK, TFT_BACKGROUND);
-tft.print("A");
-
-
-tft.setCursor(xPos, yPos+ 10);
-tft.setTextColor(TFT_RED, TFT_BACKGROUND);
-tft.print("MIC");
-
-tft.setCursor(xPos,yPos + 20);
-tft.setTextColor(TFT_YELLOW, TFT_BACKGROUND);
-tft.print("PEAK");
-
-tft.setCursor(xPos,yPos + 30);
-tft.setTextColor(TFT_MAGENTA, TFT_BACKGROUND);
-tft.print("GAIN"); 
-
-*/
-
-  tft.setFreeFont(NULL);
-
-  tft.setTextSize(1);
   
 tft.setCursor(xPos, yPos);
 
@@ -759,10 +732,10 @@ tft.print("I ");
 tft.setTextColor(TFT_CYAN, TFT_BACKGROUND);
 tft.print("Q ");
 
-tft.setTextColor(TFT_PINK, TFT_BACKGROUND);
+tft.setTextColor(TFT_RED, TFT_BACKGROUND);
 tft.print("A ");
 
-tft.setTextColor(TFT_RED, TFT_BACKGROUND);
+tft.setTextColor(TFT_PINK, TFT_BACKGROUND);
 tft.print("MIC ");
 
 tft.setTextColor(TFT_YELLOW, TFT_BACKGROUND);
@@ -770,6 +743,13 @@ tft.print("PEAK ");
 
 tft.setTextColor(TFT_MAGENTA, TFT_BACKGROUND);
 tft.print("GAIN "); 
+
+
+tft.setCursor (245, 45); // display frequency KHz label
+tft.setFreeFont (FONT2);
+tft.setTextColor(TFT_GREEN);
+tft.print("KHz");
+
 
 
 } 
