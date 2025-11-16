@@ -381,6 +381,7 @@ void hmi_handler(uint8_t event) {
     ptt_external_active = true;
   } else if (event == HMI_PTT_OFF) {
     ptt_external_active = false;
+   ;
   }
 
   /* Special case for TUNE state */
@@ -793,11 +794,11 @@ void hmi_smeter(void) {
     //tft.fillRect(x_plus2, y_plus2, X_CHAR1-1, Y_CHAR1-4, TFT_LIGHTGREY); //TFT_BACKGROUND);
 #endif
 
-    if (tx_enable_changed == true)  //if changed tx-rx = display clear
-    {
-      rec_level_old = 0;  //print all
-      fft_gain_old = 0;
-    }
+   // if (tx_enable_changed == true)  //if changed tx-rx = display clear
+    //{
+     // rec_level_old = 0;  //print all
+    //  fft_gain_old = 0;
+   // }
 
 /*
       rec_level = rec_level_old;
@@ -820,7 +821,7 @@ void hmi_smeter(void) {
     smeter_display_time = 0;
   }
 
-  if (fft_gain_old != fft_gain) {
+  if (fft_gain_old != fft_gain ) {
     tft.setTextColor(TFT_MAGENTA);
     sprintf(s, "Set TFT gain: %d      ", fft_gain);
     tft.fillRect(0, 0, 320, 15, TFT_BLACK);
@@ -831,7 +832,7 @@ void hmi_smeter(void) {
     tft.fillRect(0, 142, 160, 15, TFT_DARKPURPLE);
     tft.setCursor(15, 155);
     tft.setTextColor(TFT_ORANGE);
-    tft.print("TFTGAIN:");
+    tft.print("FFTGAIN:");
     tft.print(s);
     fft_gain_old = fft_gain;
   }
@@ -1006,7 +1007,7 @@ void hmi_evaluate(void)  //hmi loop
 
   // if band_var changed (after <enter>), set parameters accordingly
 
-  if (hmi_freq_old != hmi_freq || tx_enable_changed) {
+  if (hmi_freq_old != hmi_freq) {
 
     if (hmi_freq > 40000000L)
       hmi_freq = 40000000L;  // limit to 40MHz
@@ -1020,12 +1021,7 @@ void hmi_evaluate(void)  //hmi loop
     char oldFreq[20];
 
     tft.setFreeFont(FONT3);
-    
-    if (tx_enabled)
-    tft.setTextColor(TFT_RED);
-    else
-    tft.setTextColor(TFT_GREEN); 
-    
+
     
     int fixedRightX = 220;
     int textWidth = tft.textWidth(s);
@@ -1060,6 +1056,7 @@ void hmi_evaluate(void)  //hmi loop
     display_fft_graf_top();
     hmi_freq_old = hmi_freq;
   }
+
 
 
 
@@ -1121,6 +1118,7 @@ void hmi_evaluate(void)  //hmi loop
 #endif
     } else {
   
+        tft.setTextColor(TFT_GREEN);
         tft.setCursor(210, 65);
         tft.print("RX");          
     
@@ -1199,8 +1197,6 @@ void hmi_evaluate(void)  //hmi loop
         tft.setCursor(15, 140);
         tft.print(s);
 
-
-
         tft.setFreeFont(FONT1);
         tft_cursor_plus(3, TFT_BLUE, 0 + (band_vars[hmi_band][HMI_S_TUNE] > 4 ? band_vars[hmi_band][HMI_S_TUNE] + 1 : band_vars[hmi_band][HMI_S_TUNE]), 0, 0, 12);  // CURSOR
         break;
@@ -1228,7 +1224,7 @@ void hmi_evaluate(void)  //hmi loop
         tft.print(s);
         break;
       case HMI_S_FFT:
-        sprintf(s, "Set TFT gain: %d      ", fft_gain);
+        sprintf(s, "Set FFT gain: %d      ", fft_gain);
         tft_writexy_(1, TFT_MAGENTA, TFT_BACKGROUND, 0, 0, (uint8_t *)s);
         break;
       
