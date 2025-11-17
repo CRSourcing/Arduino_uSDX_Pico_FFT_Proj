@@ -3,8 +3,8 @@
 ## by Klaus Fensterseifer - PY2KLA
 ### (based on Arjan te Marvelde / uSDR-pico)
 
-This fork creates a modified UI with different pushbutton functionality. I also included 16 predefined bands that can be selected with the encoder. 
-Audio record and save to flash heve been removed sice both did not work for me. 
+This fork creates a modified UI with different pushbutton functionality. I also included 16 predefined bands that can be selected with the encoder. A colored waterfall with higher resolution is now also available.
+Audio record and save to flash heve been removed sice both did not work for me. This fork will run on the original hardware. 
 
 New UI:
 
