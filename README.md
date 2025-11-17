@@ -8,7 +8,7 @@ Audio record and save to flash heve been removed sice both did not work for me.
 
 New UI:
 
-![uSDR-PICO FFT](20251115_102630.jpg)
+![uSDR-PICO FFT](20251117_151926.jpg)
 
 
 Original UI:
