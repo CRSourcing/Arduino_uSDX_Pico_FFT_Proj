@@ -119,9 +119,6 @@ void tft_writexy_plus(uint16_t font, uint16_t color, uint16_t color_back, uint16
 
 
 
-
-
-
 void tft_cursor(uint16_t font, uint16_t color, uint8_t x, uint8_t y)
 {
     if(font == 3)
@@ -207,11 +204,6 @@ void Smeter_bargraph(int16_t index_new)
 index_new = 10;
 index_old = 0;
 #endif
-
-#ifdef DEBUG
-index_new = 10;
-#endif
-
 
 
   if(index_new >= MAX_Smeter_table)
@@ -426,145 +418,146 @@ void display_fft_graf_top(void)
 
 uint8_t vet_graf_fft[GRAPH_NUM_LINES][FFT_NSAMP];    // [NL][NCOL]
 //uint16_t vet_graf_fft_pos = 0;
-/*********************************************************
-  
-*********************************************************/
-void display_fft_graf(uint16_t freq)    //receive the actual freq to move the waterfall as changing the dial
-{                                       //consider 1kHz for each pixel on horizontal
-  int16_t x, y;
-  uint16_t extra_color;
+//********************************************************//
+uint16_t colorLUTJet[256];  // color lookup table, load at startup
+uint16_t colorLUTFire[256];  // color lookup table, load at startup
+
+// RGB565 conversion
+uint16_t rgb565(uint8_t r, uint8_t g, uint8_t b) {
+  return ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3);
+}
+
+
+void initColorLUTJet() {
+  for (int val = 0; val < 256; val++) {
+    float t = val / 255.0f;  
+    uint8_t r=0, g=0, b=0;
+
+    if (t < 0.25f) {          // Blue → Cyan
+      r = 0;
+      g = (uint8_t)(t / 0.25f * 255);
+      b = 255;
+    } else if (t < 0.5f) {    // Cyan → Green
+      r = 0;
+      g = 255;
+      b = (uint8_t)((0.5f - t) / 0.25f * 255);
+    } else if (t < 0.75f) {   // Green → Yellow
+      r = (uint8_t)((t - 0.5f) / 0.25f * 255);
+      g = 255;
+      b = 0;
+    } else {                  // Yellow → Red
+      r = 255;
+      g = (uint8_t)((1.0f - t) / 0.25f * 255);
+      b = 0;
+    }
+
+    colorLUTJet[val] = rgb565(r,g,b);
+  }
+}
+
+void initColorLUTFire() {
+  for (int val = 0; val < 256; val++) {
+    float t = val / 255.0f;  // normalize 0..1
+    uint8_t r=0, g=0, b=0;
+
+    if (t < 0.20f) {          // Black → Purple
+      r = (uint8_t)(t / 0.20f * 128);   // ramp red up to 128
+      g = 0;
+      b = (uint8_t)(t / 0.20f * 128);   // ramp blue up to 128
+    } else if (t < 0.40f) {   // Purple → Red
+      r = (uint8_t)(128 + (t - 0.20f) / 0.20f * 127); // 128→255
+      g = 0;
+      b = (uint8_t)(128 - (t - 0.20f) / 0.20f * 128); // 128→0
+    } else if (t < 0.65f) {   // Red → Orange
+      r = 255;
+      g = (uint8_t)((t - 0.40f) / 0.25f * 128); // 0→128
+      b = 0;
+    } else if (t < 0.85f) {   // Orange → Yellow
+      r = 255;
+      g = (uint8_t)(128 + (t - 0.65f) / 0.20f * 127); // 128→255
+      b = 0;
+    } else {                  // Yellow → White
+      r = 255;
+      g = 255;
+      b = (uint8_t)((t - 0.85f) / 0.15f * 255); // 0→255
+    }
+
+    colorLUTFire[val] = rgb565(r,g,b);
+  }
+}
+//**** draws the waterfall, is time critical, now pushes an entire line instead of drawing pixels like in the original version
+
+void display_fft_graf(uint16_t freq) {
   static uint16_t freq_old = 7080;
-  int16_t freq_change;
+  int16_t freq_change = (int16_t)freq - (int16_t)freq_old;
 
-  freq_change = ((int16_t)freq - (int16_t)freq_old);  //how much then dial (freq) changed
+  uint16_t extra_color = TFT_LIGHTGREY;
 
-  //erase waterfall area
-  //tft.fillRect(0, Y_MIN_DRAW, GRAPH_NUM_COLS, GRAPH_NUM_LINES, TFT_BACKGROUND);
+  // Plot waterfall
+  for (int y = 0; y < GRAPH_NUM_LINES; y ++) {
+    // Erase line
+   tft.drawFastHLine(0, (GRAPH_NUM_LINES + Y_MIN_DRAW - y),  GRAPH_NUM_COLS, TFT_BLACK);
+   static uint16_t lineBuf[GRAPH_NUM_COLS];
 
-  extra_color = tft.color565(25, 25, 25);  //light shadow on center freq
+for (int x = 0; x < GRAPH_NUM_COLS; x++) {
+  uint16_t val = vet_graf_fft[y][x] * 25;   // scaling factor
+  val = constrain(val, 0, 255);
 
-  //plot waterfall
-  //vet_graf_fft[GRAPH_NUM_LINES][GRAPH_NUM_COLS]   [NL][NCOL]
-  for(y=0; y<GRAPH_NUM_LINES; y++)   // y=0 is the line at the bottom   y=(GRAPH_NUM_LINES-1) is the new line
-  {
-    //erase one waterfall line
-    tft.drawFastHLine (0, (GRAPH_NUM_LINES + Y_MIN_DRAW - y), GRAPH_NUM_COLS, TFT_DARKBLUE);// use darkblue background
+  uint16_t re;
+#ifdef USE_TOUCH_SCREEN
+  static bool lutoption = false;
 
-#ifdef WATERFALL_IN_BLOCK   // all lines in the waterfall move with the freq change (not only the new line)
-    //move the waterfall in block according the freq change
-    //if (freq changed) and (its is not the last line) // new line does not move, it is in the right position
-    if((freq_change != 0) && (y < (GRAPH_NUM_LINES-1)))
-    {      
-      //  move the waterfall line to left or right  according to the freq change
-      if(freq_change > 0)    // new freq greater than old
-      {
-        if(freq_change < GRAPH_NUM_COLS)   //change in the visible area
-        {
-          for(x=0; x<GRAPH_NUM_COLS; x++)
-          {
-            if((x + freq_change) < GRAPH_NUM_COLS)
-            {
-              vet_graf_fft[y][x] = vet_graf_fft[y][x + freq_change];   //move to left
-            }
-            else
-            {
-              vet_graf_fft[y][x] = 0;  //fill with empty
-            }
-          }    
-        }
-        else  //big change, make a empty line (erase the old data)
-        {
-          vet_graf_fft[y][x] = 0;
-        }
-      }
-      else   // new freq smaller than old = freq_change is negative
-      {
-        if((-freq_change) < GRAPH_NUM_COLS)   //change in the visible area
-        {
-          for(x=GRAPH_NUM_COLS-1; x>=0; x--)
-          {
-            if((x + freq_change) > 0)
-            {
-              vet_graf_fft[y][x] = vet_graf_fft[y][x + freq_change];   //move to right
-            }
-            else
-            {
-              vet_graf_fft[y][x] = 0;  //fill with empty
-            }
-          }    
-        }
-        else  //big change, make a empty line (erase the old data)
-        {
-          vet_graf_fft[y][x] = 0;
-        }
-      }
-    }      
+  if (tox > 150 && tox < 170 && toy > 175 && toy < 185) { // toggle to alternative palette
+    lutoption = !lutoption;
+    tox = toy = 0;
+    block_touch = 5; // block for a while to avoid toggeling
+  }
+
+  re = lutoption ? swapBytes(colorLUTFire[val]) : swapBytes(colorLUTJet[val]);  //need to swap byte order for tft.pushImage
+#else
+  re = swapBytes(colorLUTJet[val]); // only Jet palette available
 #endif
 
-    //plot waterfall line
-    for(x=0; x<GRAPH_NUM_COLS; x++)
-    {
-#ifdef DEBUG    //random lines for debugging                   
-static int lockX = 100;
-static long pixelCount = 320;
 
-if (pixelCount <= 0) {
-  lockX = random(0, 320);             
-  pixelCount = random(20000);       
+  if (val) {
+    if (x >= triang_x_min && x <= triang_x_max)
+      lineBuf[x] = re | extra_color;
+    else
+      lineBuf[x] = re;
+  } 
+  
+  else {
+    if (x >= triang_x_min && x <= triang_x_max)
+      lineBuf[x] = 0x0908 | extra_color;
+    else
+      lineBuf[x] = 0x0908; // 0x0908 = TFT_DARKBLUE (swapped)
+  }
 }
 
-
-    uint8_t brightness = random( 256);
-
-
-    uint8_t r = brightness >> 3;      // 5 bits
-    uint8_t g = brightness >> 2;      // 6 bits
-    uint8_t b = brightness >> 3;      // 5 bits
-    uint16_t shade = (r << 11) | (g << 5) | b;
+//  push the line 
+int screenY = GRAPH_NUM_LINES + Y_MIN_DRAW - y;
+tft.pushImage(0, screenY, GRAPH_NUM_COLS, 1, lineBuf);
 
 
-tft.drawPixel(lockX, (GRAPH_NUM_LINES + Y_MIN_DRAW - y), shade);
-pixelCount--;
-
-#endif
-
-      //plot one waterfall line
-      if(vet_graf_fft[y][x] > 0)
-      {
-        if((x>=triang_x_min) && (x<=triang_x_max))  //tune shadow area
-        {
-          tft.drawPixel(x, (GRAPH_NUM_LINES + Y_MIN_DRAW - y), TFT_WHITE|extra_color); 
-        }
-        else
-        {
-          tft.drawPixel(x, (GRAPH_NUM_LINES + Y_MIN_DRAW - y), TFT_WHITE); 
-        }
-      }
-      else
-      {
-        if((x>=triang_x_min) && (x<=triang_x_max))  //tune shadow area
-        {
-          tft.drawPixel(x, (GRAPH_NUM_LINES + Y_MIN_DRAW - y), TFT_BACKGROUND|extra_color); 
-        }
-      }
-    }
   }
 
 
-
-  //move graph data array one line up to open space for next FFT (new line will be the last line)
-  for(y=0; y<(GRAPH_NUM_LINES-1); y++)
-  {
-    for(x=0; x<GRAPH_NUM_COLS; x++)
-    {
-      vet_graf_fft[y][x] = vet_graf_fft[y+1][x];
-    }
+  // Shift FFT buff
+  for (int y = 0; y < GRAPH_NUM_LINES - 1; y++) {
+    memmove(vet_graf_fft[y], vet_graf_fft[y + 1],
+            GRAPH_NUM_COLS * sizeof(vet_graf_fft[0][0]));
   }
 
+  
 
-  freq_old = freq;  //take note of the freq center on last waterfall printed on display
+  freq_old = freq;
 }
 
+
+// Swap high/low bytes
+static inline uint16_t swapBytes(uint16_t c) {
+  return (c << 8) | (c >> 8);
+}
 
 
 
@@ -575,6 +568,9 @@ void display_aud_graf_var(uint16_t aud_pos, uint16_t aud_var, uint16_t color)
   int16_t x;
   int16_t aud; 
   
+
+
+
 if (aud_var != sel_graph && sel_graph < 6) // 6 means all graphs together
   return;
   
@@ -651,8 +647,8 @@ for (int y = Y_MIN_AUD_GRAPH; y < Y_MIN_AUD_GRAPH + (AUD_GRAPH_MAX - AUD_GRAPH_M
   //plot each variable
   display_aud_graf_var(aud_pos, AUD_SAMP_I, TFT_GREEN);
   display_aud_graf_var(aud_pos, AUD_SAMP_Q, TFT_CYAN);
+    display_aud_graf_var(aud_pos, AUD_SAMP_A, TFT_PINK);
   display_aud_graf_var(aud_pos, AUD_SAMP_MIC, TFT_RED);
-  display_aud_graf_var(aud_pos, AUD_SAMP_A, TFT_PINK);
   display_aud_graf_var(aud_pos, AUD_SAMP_PEAK, TFT_YELLOW);
   display_aud_graf_var(aud_pos, AUD_SAMP_GAIN, TFT_MAGENTA);
 
@@ -750,8 +746,8 @@ tft.setFreeFont (FONT2);
 tft.setTextColor(TFT_GREEN);
 tft.print("KHz");
 
-
-
+initColorLUTJet(); // init color lookup table for waterfall
+initColorLUTFire(); // alternative color mapping
 } 
 
 
@@ -786,9 +782,6 @@ void display_tft_countdown(bool show, uint16_t val)
     tft.fillRoundRect(260, 100, 50, 40, 10, TFT_BACKGROUND);
   }
 }
-
-
-
 
 
 void display_tft_loop(void) 

@@ -1,3 +1,4 @@
+  #include <sys/_stdint.h>
 /*
  * dsp.c
  *
@@ -82,14 +83,6 @@ volatile uint16_t dac_iq, dac_audio;
 bool rx(void);
 void tx(void);
 bool vox(void);
-
-
-
-
-
-
-
-
 
 
 #if 0
@@ -2536,12 +2529,33 @@ void dsp_core1_setup_and_loop()
       for(j_c1=0; j_c1<HILBERT_TAP_NUM; j_c1++)
       {
 #ifdef EXCHANGE_I_Q
-        fft_i_s[j_c1] = (fft_gain * fft_samp[block_num][block_pos]) >> FFT_GAIN_SHIFT;   
-        fft_q_s[j_c1] = (fft_gain * fft_samp[block_num][block_pos+1]) >> FFT_GAIN_SHIFT;;
+    {
+        int32_t sample_i = (int32_t)fft_samp[block_num][block_pos];
+        int32_t sample_q = (int32_t)fft_samp[block_num][block_pos+1];
+
+        int32_t prod_i = (int32_t)fft_gain * sample_i;
+        int32_t prod_q = (int32_t)fft_gain * sample_q;
+
+        fft_i_s[j_c1] = (int16_t)(prod_i >> FFT_GAIN_SHIFT);
+        fft_q_s[j_c1] = (int16_t)(prod_q >> FFT_GAIN_SHIFT);
+    }
 #else
-        fft_q_s[j_c1] = (fft_gain * fft_samp[block_num][block_pos]) >> FFT_GAIN_SHIFT;;   
-        fft_i_s[j_c1] = (fft_gain * fft_samp[block_num][block_pos+1]) >> FFT_GAIN_SHIFT;;
+    {
+        int32_t sample_q = (int32_t)fft_samp[block_num][block_pos];
+        int32_t sample_i = (int32_t)fft_samp[block_num][block_pos+1];
+
+        int32_t prod_q = (int32_t)fft_gain * sample_q;
+        int32_t prod_i = (int32_t)fft_gain * sample_i;
+
+        fft_q_s[j_c1] = (int16_t)(prod_q >> FFT_GAIN_SHIFT);
+        fft_i_s[j_c1] = (int16_t)(prod_i >> FFT_GAIN_SHIFT);
+    }
 #endif
+
+
+
+
+
         block_pos+=3;
         if(block_pos >= BLOCK_NSAMP)
         {
@@ -2556,14 +2570,31 @@ void dsp_core1_setup_and_loop()
           fft_q_s[i_c1] = fft_q_s[i_c1+1];
           fft_i_s[i_c1] = fft_i_s[i_c1+1];
         }
-#ifdef EXCHANGE_I_Q
-        fft_i_s[(HILBERT_TAP_NUM-1)] = (fft_gain * fft_samp[block_num][block_pos]) >> FFT_GAIN_SHIFT;
-        fft_q_s[(HILBERT_TAP_NUM-1)] = (fft_gain * fft_samp[block_num][block_pos+1]) >> FFT_GAIN_SHIFT;
-#else
-        fft_q_s[(HILBERT_TAP_NUM-1)] = (fft_gain * fft_samp[block_num][block_pos]) >> FFT_GAIN_SHIFT;
-        fft_i_s[(HILBERT_TAP_NUM-1)] = (fft_gain * fft_samp[block_num][block_pos+1]) >> FFT_GAIN_SHIFT;
-#endif
+
      
+// Use int32_t keep precision
+int32_t sample_i = (int32_t)fft_samp[block_num][block_pos]; // casting to 32 to avoid overflow after multiplication
+int32_t sample_q = (int32_t)fft_samp[block_num][block_pos+1];
+
+int32_t prod_i = (int32_t)fft_gain * sample_i;
+int32_t prod_q = (int32_t)fft_gain * sample_q;
+
+#ifdef EXCHANGE_I_Q
+
+fft_i_s[HILBERT_TAP_NUM-1] = (int16_t)(prod_i >> FFT_GAIN_SHIFT);
+fft_q_s[HILBERT_TAP_NUM-1] = (int16_t)(prod_q >> FFT_GAIN_SHIFT);
+
+#else
+
+fft_i_s[HILBERT_TAP_NUM-1] = (int16_t)(prod_i >> FFT_GAIN_SHIFT);
+fft_q_s[HILBERT_TAP_NUM-1] = (int16_t)(prod_q >> FFT_GAIN_SHIFT);
+
+#endif
+
+
+
+
+
         qh = ((int32_t)(fft_q_s[0]-fft_q_s[14])*315L + (int32_t)(fft_q_s[2]-fft_q_s[12])*440L + 
               (int32_t)(fft_q_s[4]-fft_q_s[10])*734L + (int32_t)(fft_q_s[6]-fft_q_s[ 8])*2202L) >> 12;  // / 4096L
         //qh = ((int32_t)(fft_q_s[0]-fft_q_s[14])*315 + (int32_t)(fft_q_s[2]-fft_q_s[12])*440 + 
@@ -2603,9 +2634,9 @@ void dsp_core1_setup_and_loop()
       }
 #endif
 
- 
 
 
+      // linear
       // FFT  I - H(Q)
       kiss_fftr(fft_cfg , fft_in_minus, fft_out);  // ***  about 30ms
 
@@ -2613,14 +2644,11 @@ void dsp_core1_setup_and_loop()
       // fill line for graphic  -band to 0
       for(i_c1=0; i_c1<FFT_NUMFREQ; i_c1++)
       {
-        if(MAG(fft_out[i_c1].r, fft_out[i_c1].i) > 1)
+        
         {
-          vet_graf_fft[(GRAPH_NUM_LINES-1)][(FFT_NUMFREQ-1)+i_c1] = 1;
+          vet_graf_fft[(GRAPH_NUM_LINES-1)][(FFT_NUMFREQ-1)+i_c1] = MAG(fft_out[i_c1].r, fft_out[i_c1].i);
         }
-        else
-        {
-          vet_graf_fft[(GRAPH_NUM_LINES-1)][(FFT_NUMFREQ-1)+i_c1] = 0;
-        }
+      
       }
 
       
@@ -2631,17 +2659,54 @@ void dsp_core1_setup_and_loop()
       // fill line for graphic  0 to +band
       for(i_c1=0; i_c1<FFT_NUMFREQ; i_c1++)
       {
-        if(MAG(fft_out[i_c1].r, fft_out[i_c1].i) > 1)
-        {
-          vet_graf_fft[(GRAPH_NUM_LINES-1)][FFT_NUMFREQ-i_c1] = 1;
-        }
-        else
-        {
-          vet_graf_fft[(GRAPH_NUM_LINES-1)][FFT_NUMFREQ-i_c1] = 0;
-        }
+       
+       
+          vet_graf_fft[(GRAPH_NUM_LINES-1)][FFT_NUMFREQ-i_c1] = MAG(fft_out[i_c1].r, fft_out[i_c1].i);
 
       }
 
+
+
+/*
+
+// scaled
+
+ kiss_fftr(fft_cfg, fft_in_minus, fft_out);
+
+// Find max magnitude
+uint16_t max_mag = 1; // avoid divide-by-zero
+for (int i = 0; i < FFT_NUMFREQ; i++) {
+  uint16_t mag = MAG(fft_out[i].r, fft_out[i].i);
+  if (mag > max_mag) max_mag = mag;
+}
+
+// Normalize and store
+for (int i = 0; i < FFT_NUMFREQ; i++) {
+  uint16_t mag = MAG(fft_out[i].r, fft_out[i].i);
+  uint8_t result = (mag * 255) / max_mag;  // scale to 0–255
+  vet_graf_fft[GRAPH_NUM_LINES-1][(FFT_NUMFREQ-1)+i] = result;
+}
+      
+
+
+kiss_fftr(fft_cfg, fft_in_plus, fft_out);
+
+// Find max magnitude
+ max_mag = 1; // avoid divide-by-zero
+for (int i = 0; i < FFT_NUMFREQ; i++) {
+  uint16_t mag = MAG(fft_out[i].r, fft_out[i].i);
+  if (mag > max_mag) max_mag = mag;
+}
+
+// Normalize and store
+for (int i = 0; i < FFT_NUMFREQ; i++) {
+  uint16_t mag = MAG(fft_out[i].r, fft_out[i].i);
+  uint8_t result = (mag * 255) / max_mag;  // scale to 0–255
+  vet_graf_fft[GRAPH_NUM_LINES-1][FFT_NUMFREQ - i] = result;
+}
+
+
+*/
 
 
 #if 0

@@ -1,3 +1,4 @@
+#include <sys/_stdint.h>
 /*
  * uSDR.c
  *
@@ -88,7 +89,13 @@ Serialx.println("uSDR_setup   relay_init");
  display_static_elements();   //moved to setup0 to write into display from the begining 
 
 
+
+
+
 hmi_init0(); 
+
+
+
 Serialx.println("uSDR_setup   finished");
 
 
@@ -108,6 +115,14 @@ void uSDR_loop(void)
 
   if((uint16_t)(tim_count - tim_loc) >= (uint16_t)LOOP_MS)  //run the tasks every 100ms  (LOOP_MS = 100)
   {
+
+   uint32_t st = millis(); 
+
+
+    #ifdef USE_TOUCH_SCREEN
+    touch_evaluate();             // must run before hmi_evaluate
+    #endif
+ 
     hmi_evaluate();               // Refresh HMI
     //Serialx.println("hmi_evaluate   finished");
    
@@ -117,14 +132,41 @@ void uSDR_loop(void)
     mon_evaluate();               // Check monitor input
     //Serialx.println("mon_evaluate   finished");
     
+    //Serialx.println("dsp_loop  started\n");
     dsp_loop();  //spend more time here for FFT and graphic
-    //Serialx.println("dsp_loop   finished");
+    //Serialx.println("dsp_loop   finished\n");
 
+    //Serialx.println("tft_loop  started\n");
     display_tft_loop();           // Refresh display
-    //Serialx.println("display_tft_loop   finished"); 
-    //it takes 50ms for the tasks (most in hmi_evaluate() to plot the waterfall)
+   // Serialx.println("tft_loop  finished\n");
+
+    //it takes around 35ms for the tasks (most in hmi_evaluate() to plot the waterfall)
+
+  /*  
     
+  uint32_t diff = millis() - st;
+
+if (diff < 1000) {
+
+static uint32_t diff_old = 0;  
+  
+  if (diff_old != diff) {
+   char s [20];
+  
+  sprintf(s, "%lums", diff);
+  tft.setFreeFont(FONT1);
+  tft.setTextColor(TFT_GREEN);
+  tft.fillRect(170,105,50,22,TFT_BLACK);
+  tft.setCursor(170,120);
+  tft.print(s);
+  diff_old = diff;
+  }
+
+}
+ 
+ */
     tim_loc += LOOP_MS;
   }
+
 
 }

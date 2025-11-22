@@ -1,3 +1,4 @@
+#include <sys/_stdint.h>
 #ifndef __HMI_H__
 #define __HMI_H__
 
@@ -85,7 +86,7 @@ extern "C" {
 #define MODE_AM   2
 #define MODE_CW   3
 
-
+#define USE_TOUCH_SCREEN
 
 
 
@@ -130,6 +131,9 @@ extern bool ptt_aud_active;
 
 
 extern uint8_t sel_graph; // select scope graphics
+extern uint16_t tox, toy; // touch coordinates
+extern uint8_t block_touch; // block touch request for a while
+
 
 void Setup_Band(uint8_t band);
 void hmi_init0(void);
@@ -137,9 +141,9 @@ void hmi_init(void);
 void hmi_evaluate(void);
 void print_current_mode (char *s); 
 void print_Band(uint8_t band);
+void touch_evaluate(void);
 //#define TST_MAX_SMETER_SWR  1
-
-
+static inline uint16_t swapBytes(uint16_t);
 
 #ifdef __cplusplus
 }
