@@ -86,7 +86,7 @@ extern "C" {
 #define MODE_AM   2
 #define MODE_CW   3
 
-#define USE_TOUCH_SCREEN
+//#define USE_TOUCH_SCREEN
 
 
 
