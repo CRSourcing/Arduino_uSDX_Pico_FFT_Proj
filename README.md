@@ -3,9 +3,8 @@
 ## by Klaus Fensterseifer - PY2KLA
 ### (based on Arjan te Marvelde / uSDR-pico)
 
-This fork creates a modified UI with different pushbutton functionality. I also included 16 predefined bands that can be selected with the encoder. A colored waterfallis now also available and the waterfall drawing 
-function has been optimized for speed. Audio record and save to flash heve been removed sice both did not work for me. Experimental touch screen support has been included. To use the touch screen, uncomment //#define USE_TOUCH_SCREEN in hmi.h.
-Connect TOUCH CS pin with GPIO 14, TOUCH CLK pin with GPIO 10 and TOUCH MISO pin with GPIO 12. Use the included file Setup60_RP2040_ILI9341.h to replace the original file in the TFT_eSPI library.  
+This fork creates a modified UI with different pushbutton functionality. 16 predefined bands can now be selected with the encoder. A colored waterfall is now also available and the waterfall drawing 
+function has been optimized for speed. Audio record and save to flash heve been removed sice both did not work for me. Experimental touch screen support has been included. To use the touch screen, uncomment //#define USE_TOUCH_SCREEN in hmi.h. Connect TOUCH CS pin with GPIO 14, TOUCH CLK pin with GPIO 10 and TOUCH MISO pin with GPIO 12. Use the included file Setup60_RP2040_ILI9341.h to replace the original file in the TFT_eSPI library.  
 
 New UI:
 
