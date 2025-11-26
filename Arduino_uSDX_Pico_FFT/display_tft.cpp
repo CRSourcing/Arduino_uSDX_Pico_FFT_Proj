@@ -510,7 +510,7 @@ for (int x = 0; x < GRAPH_NUM_COLS; x++) {
   if (tox > 150 && tox < 170 && toy > 175 && toy < 185) { // toggle to alternative palette
     lutoption = !lutoption;
     tox = toy = 0;
-    block_touch = 5; // block for a while to avoid toggeling
+    touch_delay = 5; // block for a while to avoid toggeling
   }
 
   re = lutoption ? swapBytes(colorLUTFire[val]) : swapBytes(colorLUTJet[val]);  //need to swap byte order for tft.pushImage
@@ -554,7 +554,7 @@ tft.pushImage(0, screenY, GRAPH_NUM_COLS, 1, lineBuf);
 }
 
 
-// Swap high/low bytes
+// Swap high/low bytes, needed for pushImage
 static inline uint16_t swapBytes(uint16_t c) {
   return (c << 8) | (c >> 8);
 }
@@ -567,13 +567,16 @@ void display_aud_graf_var(uint16_t aud_pos, uint16_t aud_var, uint16_t color)
 {  
   int16_t x;
   int16_t aud; 
-  
 
 
-
-if (aud_var != sel_graph && sel_graph < 6) // 6 means all graphs together
+if (aud_var > 1 && aud_var != sel_graph && sel_graph < 6)// 6 means all graphs together
   return;
-  
+else if (sel_graph > 1 && aud_var < 2)
+   return;
+
+
+
+
 
   for(x=0; x<AUD_GRAPH_NUM_COLS; x++)
   {
@@ -589,12 +592,16 @@ if (aud_var != sel_graph && sel_graph < 6) // 6 means all graphs together
     }
     else
     {
-      tft.drawPixel((x + X_MIN_AUD_GRAPH), (Y_MIN_AUD_GRAPH + AUD_GRAPH_MAX - aud), color);        
+    
+    if (sel_graph) 
+       tft.drawPixel((x + X_MIN_AUD_GRAPH), (Y_MIN_AUD_GRAPH + AUD_GRAPH_MAX - aud), color);        
+    else // vectorscope
+      if (( aud_samp[0][x] < 26 && aud_samp[0][x] > -26) && (aud_samp[1][x] < 26 && aud_samp[1][x] > -26))
+       tft.drawPixel( X_MIN_AUD_GRAPH + 50 + (int32_t) aud_samp[0][x] * 1.5f , (Y_MIN_AUD_GRAPH + AUD_GRAPH_MAX +  aud_samp[1][x]), TFT_WHITE);     
     }
   }
   
 }
-
 
 
 
@@ -645,10 +652,10 @@ for (int y = Y_MIN_AUD_GRAPH; y < Y_MIN_AUD_GRAPH + (AUD_GRAPH_MAX - AUD_GRAPH_M
   aud_pos = x;
 
   //plot each variable
-  display_aud_graf_var(aud_pos, AUD_SAMP_I, TFT_GREEN);
-  display_aud_graf_var(aud_pos, AUD_SAMP_Q, TFT_CYAN);
-    display_aud_graf_var(aud_pos, AUD_SAMP_A, TFT_PINK);
-  display_aud_graf_var(aud_pos, AUD_SAMP_MIC, TFT_RED);
+  display_aud_graf_var(aud_pos, AUD_SAMP_I, TFT_RED);
+  display_aud_graf_var(aud_pos, AUD_SAMP_Q, TFT_GREEN);
+  display_aud_graf_var(aud_pos, AUD_SAMP_A, TFT_PINK);
+  display_aud_graf_var(aud_pos, AUD_SAMP_MIC, TFT_CYAN);
   display_aud_graf_var(aud_pos, AUD_SAMP_PEAK, TFT_YELLOW);
   display_aud_graf_var(aud_pos, AUD_SAMP_GAIN, TFT_MAGENTA);
 
@@ -711,9 +718,30 @@ void display_intro(void) {
 *********************************************************/
 void display_static_elements(void) {
 
-uint16_t xPos = 205, yPos = 95;
+uint16_t xPos = 230, yPos = 95;
 
-  tft.fillScreen(TFT_BACKGROUND);
+tft.fillScreen(TFT_BACKGROUND);
+
+
+#ifdef USE_TOUCH_SCREEN
+tft.setFreeFont(FONT1);
+tft.fillRect(160, 90, 65,67 , TFT_DARKGREEN);
+
+
+tft.setTextColor(TFT_RED);
+tft.setCursor(162, 102);
+tft.print("TOUCH:");
+
+
+tft.setTextColor(TFT_GREEN);
+tft.setCursor(165, 118);
+tft.print("ENTER");
+
+tft.setCursor(160, 135);
+tft.print("SELECT");
+tft.setCursor(165, 152);
+tft.print("-VAL+");
+#endif
 
   tft.setFreeFont(NULL);
 
@@ -722,23 +750,24 @@ uint16_t xPos = 205, yPos = 95;
   
 tft.setCursor(xPos, yPos);
 
-tft.setTextColor(TFT_GREEN);
-tft.print("I ");
-
-tft.setTextColor(TFT_CYAN, TFT_BACKGROUND);
+tft.setTextColor(TFT_RED, TFT_BACKGROUND);
+tft.print("I");
+tft.setTextColor(TFT_LIGHTGREY, TFT_BACKGROUND);
+tft.print("+");
+tft.setTextColor(TFT_GREEN, TFT_BACKGROUND);
 tft.print("Q ");
 
-tft.setTextColor(TFT_RED, TFT_BACKGROUND);
-tft.print("A ");
+tft.setTextColor(TFT_CYAN, TFT_BACKGROUND);
+tft.print("MC ");
 
 tft.setTextColor(TFT_PINK, TFT_BACKGROUND);
-tft.print("MIC ");
+tft.print("A ");
 
 tft.setTextColor(TFT_YELLOW, TFT_BACKGROUND);
-tft.print("PEAK ");
+tft.print("PK ");
 
 tft.setTextColor(TFT_MAGENTA, TFT_BACKGROUND);
-tft.print("GAIN "); 
+tft.print("GN "); 
 
 
 tft.setCursor (245, 45); // display frequency KHz label

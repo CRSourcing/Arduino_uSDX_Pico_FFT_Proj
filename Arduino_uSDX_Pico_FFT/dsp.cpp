@@ -1151,14 +1151,6 @@ void dsp_setvox(int vox)
 }
 
 
-
-
-
-
-
-
-
-
 //the AD sample frequency is as high as possible to get information for FFT bandwidth
 //there shoud be a hardware low pass filter 
 //the audio sample is as high as possible to make easy to filter the undesirable (sample) freq on output hardware low pass filter (only RC filter)
@@ -1209,7 +1201,7 @@ volatile uint16_t fft_samples_ready = 0;  //all buffer filled
 volatile uint16_t fft_display_graf_new = 0;   //new data for graphic ready
 
 volatile int16_t aud_samp[AUD_NUM_VAR][AUD_NUM_SAMP];  //samples buffer for audio process, filter and demodulation
-volatile uint16_t aud_samp_block_pos = 0;    
+volatile uint16_t aud_samp_block_pos = 0;   
 volatile uint16_t aud_samples_state = AUD_STATE_SAMP_IN;  //filling buffer
 
 volatile uint16_t i_int, j_int;
@@ -1814,8 +1806,8 @@ bool rx(void)
 
 if(aud_samples_state == AUD_STATE_SAMP_IN)    //store variables for scope graphic
   {
-    aud_samp[AUD_SAMP_I][aud_samp_block_pos] = i_accu;
-    aud_samp[AUD_SAMP_Q][aud_samp_block_pos] = q_accu;
+    aud_samp[AUD_SAMP_I][aud_samp_block_pos] = i_accu; 
+    aud_samp[AUD_SAMP_Q][aud_samp_block_pos] =  q_accu; 
   }
 
 
@@ -1849,6 +1841,8 @@ if(aud_samples_state == AUD_STATE_SAMP_IN)    //store variables for scope graphi
 		a_sample = MAG(i_s[(HILBERT_TAP_NUM-1)], q_s[(HILBERT_TAP_NUM-1)]);  //MAG from the last filtered I Q sample
     //a_sample = i_sample;  //MAG from the last filtered I Q sample
 		break;
+  
+  
   case MODE_CW:                     // CW
     /*
      * Rx CW = LSB
@@ -2646,7 +2640,7 @@ fft_q_s[HILBERT_TAP_NUM-1] = (int16_t)(prod_q >> FFT_GAIN_SHIFT);
       {
         
         {
-          vet_graf_fft[(GRAPH_NUM_LINES-1)][(FFT_NUMFREQ-1)+i_c1] = MAG(fft_out[i_c1].r, fft_out[i_c1].i);
+          vet_graf_fft[(GRAPH_NUM_LINES-1)][(FFT_NUMFREQ-1)+i_c1] =  MAG(fft_out[i_c1].r, fft_out[i_c1].i);
         }
       
       }
@@ -2661,7 +2655,7 @@ fft_q_s[HILBERT_TAP_NUM-1] = (int16_t)(prod_q >> FFT_GAIN_SHIFT);
       {
        
        
-          vet_graf_fft[(GRAPH_NUM_LINES-1)][FFT_NUMFREQ-i_c1] = MAG(fft_out[i_c1].r, fft_out[i_c1].i);
+          vet_graf_fft[(GRAPH_NUM_LINES-1)][FFT_NUMFREQ-i_c1] =  MAG(fft_out[i_c1].r, fft_out[i_c1].i);
 
       }
 

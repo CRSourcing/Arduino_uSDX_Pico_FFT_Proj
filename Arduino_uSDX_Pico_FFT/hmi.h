@@ -86,14 +86,14 @@ extern "C" {
 #define MODE_AM   2
 #define MODE_CW   3
 
-//#define USE_TOUCH_SCREEN
+#define USE_TOUCH_SCREEN
 
 
 
 #define NUMBER_OF_BANDS	16
 extern uint8_t  band_vars[NUMBER_OF_BANDS][NUMBER_OF_MENUES];
 
-#define START_BAND 4 // band to start transceiver
+#define START_BAND 15 // band to start transceiver
 
 // Starting freqs when band gets called
 
@@ -106,13 +106,13 @@ extern uint8_t  band_vars[NUMBER_OF_BANDS][NUMBER_OF_MENUES];
 #define b6  21300000LU
 #define b7  24900000LU
 #define b8  27455000LU
-#define b9  28074000LU
+#define b9  28080000LU
 #define b10 28500000LU
 #define b11  1000000LU
 #define b12 5000000LU
 #define b13 9000000LU
 #define b14 13500000LU
-#define b15 25000000LU
+#define b15 24040400LU
 
 
 
@@ -132,8 +132,7 @@ extern bool ptt_aud_active;
 
 extern uint8_t sel_graph; // select scope graphics
 extern uint16_t tox, toy; // touch coordinates
-extern uint8_t block_touch; // block touch request for a while
-
+extern uint8_t touch_delay; // blocks touch for a while
 
 void Setup_Band(uint8_t band);
 void hmi_init0(void);

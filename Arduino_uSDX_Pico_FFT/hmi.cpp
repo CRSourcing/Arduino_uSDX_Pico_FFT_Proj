@@ -249,7 +249,7 @@ const uint32_t hmi_maxfreq[NUMBER_OF_BANDS] = { 2500000L, 6000000L, 12000000L, 1
 #endif
 
 
-char s[80];  //aux to print to the screen
+char s[100];  //aux to print to the screen
 
 bool tx_enabled = false;
 bool tx_enable_changed = true;
@@ -260,14 +260,11 @@ bool ptt_vox_active = false;  //if vox whants to transmit
 bool ptt_mon_active = false;
 bool ptt_aud_active = false;
 
-uint8_t sel_graph = 6; // select scope graphic
+uint8_t sel_graph = 0;  // select scope graphic
 
-uint16_t tox = 0, toy = 0; //touch coordinates
-uint8_t block_touch = 0; // block get_touch if needed
+uint16_t tox = 0, toy = 0;  //touch coordinates
+uint8_t touch_delay = 0;    // block get_touch if needed
 int16_t fft_gain_old = 0;
-
-
-
 
 
 //***********************************************************************
@@ -292,17 +289,17 @@ void Store_Last_Band(uint8_t band) {
 void Setup_Band(uint8_t band) {
   uint16_t j;
 
-  char s[80];
 
   hmi_freq = band_starting_freq[band];
 
+  band_vars[hmi_band][HMI_S_TUNE] = 4; // start every band with a fixed 1KHz step
 
   if (hmi_freq > hmi_maxfreq[band])  //checking boundaries
   {
-    Serialx.print("hmi_freq > hmi_maxfreq[band");
+    //Serialx.print("hmi_freq > hmi_maxfreq[band");
     hmi_freq = hmi_maxfreq[band];
   } else if (hmi_freq < hmi_minfreq[band]) {
-    Serialx.print("hmi_freq < hmi_minfreq[band");
+    //Serialx.print("hmi_freq < hmi_minfreq[band");
     hmi_freq = hmi_minfreq[band];
   }
 
@@ -324,27 +321,17 @@ void Setup_Band(uint8_t band) {
   relay_setband(hmi_bpf[band_vars[band][HMI_S_BPF]]);
 
 
-
-  //	hmi_menu = HMI_S_BPF;  //changing band on band menu
-  //  hmi_band = band;
-  //	hmi_menu_opt_display = band_vars[hmi_band][hmi_menu];  //get the menu option = actual band
 }
 
 
 
 
-/*
- * HMI State Machine,
- * Handle event according to current state
- * Code needs to be optimized
- */
-
+//***********************************************************************
 void print_Band(uint8_t band) {
 
 
   if (band < 12)  // Amateur bands
-    sprintf(s, "%s: "
-               "%lu-%lu KHz",
+    sprintf(s, "%s: " "%lu-%lu KHz",
             hmi_o_band_name_displayed[band], band_lower_limit[band] / 1000, band_upper_limit[band] / 1000);
   else
     sprintf(s, " Shortwave %s ", hmi_o_band_name_displayed[band]);
@@ -366,91 +353,129 @@ void print_Band(uint8_t band) {
   }
 
   tft.setFreeFont(FONT1);
-  Serialx.println(s);
+ // Serialx.println(s);
 }
 
 
 
 //*********************************************************************************//
 
+/*
+ * HMI State Machine,
+ * Handle event according to current state
+ * Code needs to be optimized
+ */
+
+
+
+
 
 void hmi_handler(uint8_t event) {
 
 
 uint8_t hmi_menu_last = HMI_S_BPF;  //Always start with bands menue
- 
- #ifdef USE_TOUCH_SCREEN
 
-if (event == 99) {
+#ifdef USE_TOUCH_SCREEN
 
-if(tox> 220 && toy > 100 && toy < 170){ // snippet to select an oscilloscope trace by touching the screen
+  if (event == 99) {
+
+   // Simulate encoder
+if (toy > 145 && toy < 165) {
+    if (tox > 160 && tox < 200) {
+        event = HMI_E_DECREMENT;
+    } else if (tox > 200 && tox < 240) {
+        event = HMI_E_INCREMENT;
+    }
+
+}
+
+
+    if (toy > 100 && toy < 125 && tox > 160 && tox < 240) {  // simulate Enter
+        event = HMI_E_SUBMENU;  //Enter
+      touch_delay = 2;
+    }
+
+
+  if (toy >125 && toy < 145) {  // simulate pushbutton presses, does not work in CW
+
+      if (tox > 200 && tox < 240)
+        event = HMI_E_RIGHT;  
+
+        if (tox > 160 && tox < 200)
+        event = HMI_E_LEFT;  
+
+
+
+      touch_delay = 2;
+    }
+
+
+    if (tox > 250 && toy > 100 && toy < 170) {  // snippet to select an oscilloscope trace by touching the screen
       if (sel_graph < 6)
-      sel_graph ++;
+        sel_graph++;
       else
-       sel_graph = 0;
-    block_touch = 3;
-    return;
-}
+        sel_graph = 0;
+      touch_delay = 3;
+      return;
+    }
 
- 
- if (toy > 180) {              // snippet to adjust hmi_freq when tapping on waterfall
-if (tox < 160)
- hmi_freq -= (80 - tox/2) * 1000;
-if (tox > 160)
- hmi_freq += (tox /2  - 80) * 1000;
-block_touch = 2;
-hmi_menu_opt_display = 4;
-band_vars[hmi_band][HMI_S_TUNE] = hmi_menu_opt_display;
-return;
 
- }
+    if (toy > 180) {  // snippet to adjust hmi_freq when tapping on waterfall
+      if (tox < 160)
+        hmi_freq -= (80 - tox / 2) * 1000;
+      if (tox > 160)
+        hmi_freq += (tox / 2 - 80) * 1000;
+      touch_delay = 2;
 
-  if (toy > 150 && toy < 170 && tox < 160)
-   fft_gain = tox;
+      if ( band_vars[hmi_band][HMI_S_TUNE] != 4) {
+      hmi_menu_opt_display = 4;
+     band_vars[hmi_band][HMI_S_TUNE] = hmi_menu_opt_display; // set to 1KHz step
+      } 
+      return;
+    }
 
-}
- // snippet to set cursor with touch
+    if (toy > 150 && toy < 170 && tox < 160)
+      fft_gain = tox;
+  }
+  // snippet to set cursor with touch
   if (toy > 15 && toy < 50) {
 
-   block_touch = 2; 
+    touch_delay = 2;
 
-  if (tox > 30 && tox < 50)
-    hmi_menu_opt_display = 1;
-    
+    if (tox > 30 && tox < 50)
+      hmi_menu_opt_display = 1;
+
     if (tox > 60 && tox < 80)
-    hmi_menu_opt_display = 2;
+      hmi_menu_opt_display = 2;
 
     if (tox > 90 && tox < 110)
-    hmi_menu_opt_display = 3;
- 
+      hmi_menu_opt_display = 3;
+
     if (tox > 115 && tox < 135)
-    hmi_menu_opt_display = 4;  
-    
-   if (tox > 170 && tox < 190)
-    hmi_menu_opt_display = 5;  
+      hmi_menu_opt_display = 4;
 
-   if (tox >200 && tox < 220)
-   hmi_menu_opt_display = 6; 
-  band_vars[hmi_band][HMI_S_TUNE] = hmi_menu_opt_display;
+    if (tox > 170 && tox < 190)
+      hmi_menu_opt_display = 5;
 
-  
-  if (tox > 250)
-     hmi_freq = hmi_freq / 1000 * 1000;  // round down to full KHz when tapping on KHz
+    if (tox > 200 && tox < 220)
+      hmi_menu_opt_display = 6;
 
+
+    band_vars[hmi_band][HMI_S_TUNE] = hmi_menu_opt_display;
+
+
+    if (tox > 250)
+      hmi_freq = hmi_freq / 1000 * 1000;  // round down to full KHz when tapping on KHz
   }
 
 #endif
-
-
-
-  
 
   if ((event == HMI_PTT_ON) && (ptt_internal_active == false))  //if internal is taking the ptt control, not from mike, ignores mike
   {
     ptt_external_active = true;
   } else if (event == HMI_PTT_OFF) {
     ptt_external_active = false;
-   ;
+    ;
   }
 
   /* Special case for TUNE state */
@@ -458,28 +483,23 @@ return;
   {
 
 
-  #ifdef USE_TOUCH_SCREEN 
-    if ((event == HMI_E_ENTER ) || (tox > 250 && (toy> 45 && toy < 80)) )    
-     { block_touch = 5;
-  #else    
+#ifdef USE_TOUCH_SCREEN
+    if ((event == HMI_E_ENTER) || (tox > 250 && (toy > 45 && toy < 80))) {
+      touch_delay = 5;
+#else
     if (event == HMI_E_ENTER)  // ENTER now sets mode
     {
-  #endif    
+#endif
       band_vars[hmi_band][HMI_S_MODE]++;
       if (band_vars[hmi_band][HMI_S_MODE] > 3)
         band_vars[hmi_band][HMI_S_MODE] = 0;
       hmi_menu_opt_display = band_vars[hmi_band][HMI_S_MODE];
     }
 
-
-
-
-
-
-    if (event == HMI_E_SUBMENU) 
+    if (event == HMI_E_SUBMENU)
     // Enter submenus
     {
-    
+
       //band_vars[hmi_band][hmi_menu] = hmi_menu_opt_display;							// Store cursor position on TUNE
       hmi_menu = hmi_menu_last;  // go to last menu selected before TUNE
 
@@ -491,19 +511,25 @@ return;
 
     else if (event == HMI_E_INCREMENT) {
 
+      hmi_menu_opt_display = band_vars[hmi_band][HMI_S_TUNE]; // fixes step change bug
+      
       hmi_freq += hmi_step[hmi_menu_opt_display];  // Increment selected digit
 
       if (hmi_freq > band_upper_limit[hmi_band]) {  // Limit to upper band limit
         hmi_freq = band_upper_limit[hmi_band];
+      
       }
     } else if (event == HMI_E_DECREMENT) {
+
+       hmi_menu_opt_display = band_vars[hmi_band][HMI_S_TUNE]; // fixes step change bug
+
       hmi_freq -= hmi_step[hmi_menu_opt_display];   // Decrement selected digit
       if (hmi_freq < band_lower_limit[hmi_band]) {  // Limit to upper band limit
         hmi_freq = band_lower_limit[hmi_band];
       }
     }
 
-    
+
     if (event == HMI_E_RIGHT) {  // cursor position
       // Move selection to the right, but don't exceed max
       if (hmi_menu_opt_display < HMI_NUM_OPT_TUNE - 1) {
@@ -532,31 +558,27 @@ return;
 
       // Update band variable
       band_vars[hmi_band][HMI_S_TUNE] = hmi_menu_opt_display;
-   
-   
-     
-   
     }
 
-  
 
-  
-  
-  
+
+
+
+
   } else  //in submenus
 
   {
 
-    
 
-    
+
+
     /* Submenu states */
     switch (hmi_menu) {
 
-        
+
         // menu section 0=Tune/cursor 1=Mode 2=AGC 3=Pre 4=VOX 5=Band
 
-     
+
       case HMI_S_MODE:
 
         if (band_vars[hmi_band][HMI_S_MODE] == MODE_CW)  // need to make room for CW decoder
@@ -591,15 +613,15 @@ return;
           fft_gain += 2;
         else if (event == HMI_E_DECREMENT)
           fft_gain -= 2;
-        break;  
-         case HMI_S_OSC:
+        break;
+      case HMI_S_OSC:  // selects trace in the mini oscilloscope
         if (event == HMI_E_INCREMENT && sel_graph == 6)
           sel_graph = 0;
         else if (event == HMI_E_INCREMENT && sel_graph < 6)
           sel_graph++;
 
         else if (event == HMI_E_DECREMENT && sel_graph)
-          sel_graph--;    
+          sel_graph--;
 
         break;
     }
@@ -607,14 +629,14 @@ return;
     /* General actions for all submenus */
 
 
-    
+
 
     if (event == HMI_E_ENTER) {
-      ptt_external_active = !ptt_external_active; // for tx debugging
+      ptt_external_active = !ptt_external_active;  // for tx debugging
       tx_enabled = !tx_enabled;
       tx_enable_changed = true;
       return;
-    } 
+    }
 
     if (hmi_menu == HMI_S_BPF)
       hmi_band = hmi_menu_opt_display;  //band changed
@@ -797,9 +819,8 @@ for(;;)
 
 
 
-uint16_t calData[5] = { 379, 3519, 197, 3591, 1 };
-
-tft.setTouch(calData);
+  uint16_t calData[5] = { 379, 3519, 197, 3591, 1 };
+  tft.setTouch(calData);
 }
 
 
@@ -897,11 +918,11 @@ void hmi_smeter(void) {
     //tft.fillRect(x_plus2, y_plus2, X_CHAR1-1, Y_CHAR1-4, TFT_LIGHTGREY); //TFT_BACKGROUND);
 #endif
 
-   // if (tx_enable_changed == true)  //if changed tx-rx = display clear
+    // if (tx_enable_changed == true)  //if changed tx-rx = display clear
     //{
-     // rec_level_old = 0;  //print all
+    // rec_level_old = 0;  //print all
     //  fft_gain_old = 0;
-   // }
+    // }
 
 /*
       rec_level = rec_level_old;
@@ -924,11 +945,16 @@ void hmi_smeter(void) {
     smeter_display_time = 0;
   }
 
-  if (fft_gain_old != fft_gain ) {
-    tft.setTextColor(TFT_MAGENTA);
-    sprintf(s, "Set FFT gain: %d      ", fft_gain);
-    tft.fillRect(0, 0, 320, 15, TFT_BLACK);
-    tft_writexy_(1, TFT_MAGENTA, TFT_BACKGROUND, 0, 0, (uint8_t *)s);
+  if (fft_gain_old != fft_gain) {
+ 
+     if (!tox) {   // touch was not used
+      tft.setTextColor(TFT_MAGENTA);
+      sprintf(s, "Set FFT gain: %d      ", fft_gain);
+      tft.fillRect(0, 0, 320, 15, TFT_BLACK);
+      tft_writexy_(1, TFT_MAGENTA, TFT_BACKGROUND, 0, 0, (uint8_t *)s);
+     }
+    
+
     sprintf(s, "%d", fft_gain);
     s[3] = 0;
     tft.setFreeFont(FONT1);
@@ -1125,7 +1151,7 @@ void hmi_evaluate(void)  //hmi loop
     char oldFreq[20];
     tft.setFreeFont(FONT3);
     tft.setTextColor(TFT_GREEN);
-    
+
     int fixedRightX = 220;
     int textWidth = tft.textWidth(s);
     int startX = fixedRightX - textWidth;
@@ -1155,7 +1181,7 @@ void hmi_evaluate(void)  //hmi loop
     tft.setFreeFont(FONT1);
 
     //cursor (writing the freq erase the cursor)
-    tft_cursor_plus(3, TFT_BLUE, 0 + (band_vars[hmi_band][HMI_S_TUNE] > 4 ? band_vars[hmi_band][HMI_S_TUNE] + 1 : band_vars[hmi_band][HMI_S_TUNE]), 0, 0, 12);
+    //tft_cursor_plus(3, TFT_BLUE, 0 + (band_vars[hmi_band][HMI_S_TUNE] > 4 ? band_vars[hmi_band][HMI_S_TUNE] + 1 : band_vars[hmi_band][HMI_S_TUNE]), 0, 0, 12);
     display_fft_graf_top();
     hmi_freq_old = hmi_freq;
   }
@@ -1166,8 +1192,8 @@ void hmi_evaluate(void)  //hmi loop
   if (band_vars_old[HMI_S_MODE] != band_vars[hmi_band][HMI_S_MODE])  //mode (SSB AM CW)
   {
     dsp_setmode(band_vars[hmi_band][HMI_S_MODE]);  //MODE_USB=0 MODE_LSB=1  MODE_AM=2  MODE_CW=3
-                                                
-    display_fft_graf_top();                        //scale freqs, mode changes the triangle
+
+    display_fft_graf_top();  //scale freqs, mode changes the triangle
 
     if (band_vars[hmi_band][HMI_S_MODE] == MODE_CW) {
       CwDecoder_Inic();
@@ -1177,7 +1203,14 @@ void hmi_evaluate(void)  //hmi loop
     }
 
     band_vars_old[HMI_S_MODE] = band_vars[hmi_band][HMI_S_MODE];
+     
+  
+  
+  
   }
+
+
+  
   if (band_vars_old[HMI_S_VOX] != band_vars[hmi_band][HMI_S_VOX]) {
     dsp_setvox(band_vars[hmi_band][HMI_S_VOX]);
     band_vars_old[HMI_S_VOX] = band_vars[hmi_band][HMI_S_VOX];
@@ -1206,24 +1239,23 @@ void hmi_evaluate(void)  //hmi loop
   if (tx_enable_old != tx_enabled) {
     //erase the area for T or R, infos and the bar graph area
     //tft.fillRect(x_RT, y_RT, (6*X_CHAR1), (3*Y_CHAR1), TFT_BACKGROUND);   // TFT_LIGHTGREY);  TFT_BACKGROUND);
-     
-     tft.fillRect(210,55, 25, 16, TFT_BLACK);
-  
+
+    tft.fillRect(210, 55, 25, 16, TFT_BLACK);
+
     if (tx_enabled == true) {
 
-        tft.setTextColor(TFT_RED);
-        tft.setCursor(210, 65);
-        tft.print("TX");         
-    
-#if I2C_Arduino_Pro_Mini == 1  //using Arduino Pro Mini for relays control (and allow SWR reading)
-      //tft_writexy_plus(1, TFT_RED, TFT_BACKGROUND, 0, x_xGain, 0, y_yGain, (uint8_t *)"#0.0");
+      tft.setTextColor(TFT_RED);
+      tft.setCursor(210, 65);
+      tft.print("TX");
+
+#if I2C_Arduino_Pro_Mini == 1  //using Arduino Pro Mini for relays control (and allow SWR reading) \
+                               //tft_writexy_plus(1, TFT_RED, TFT_BACKGROUND, 0, x_xGain, 0, y_yGain, (uint8_t *)"#0.0");
 #endif
     } else {
-  
-        tft.setTextColor(TFT_GREEN);
-        tft.setCursor(210, 65);
-        tft.print("RX");          
-    
+
+      tft.setTextColor(TFT_GREEN);
+      tft.setCursor(210, 65);
+      tft.print("RX");
     }
     rec_level_old = rec_level + 1;
 
@@ -1243,7 +1275,7 @@ void hmi_evaluate(void)  //hmi loop
       CwDecoder_array_in();
     }
 
-      hmi_smeter();  //during RX, print Smeter on display only when ! CW decoding
+    hmi_smeter();  //during RX, print Smeter on display only when ! CW decoding
 
 
   } else /* TX */
@@ -1328,12 +1360,12 @@ void hmi_evaluate(void)  //hmi loop
         sprintf(s, "Set FFT gain: %d      ", fft_gain);
         tft_writexy_(1, TFT_MAGENTA, TFT_BACKGROUND, 0, 0, (uint8_t *)s);
         break;
-      
+
       case HMI_S_OSC:
         sprintf(s, "Select trace");
         tft_writexy_(1, TFT_MAGENTA, TFT_BACKGROUND, 0, 0, (uint8_t *)s);
         break;
-       
+
         tft.setTextColor(TFT_MAGENTA, TFT_BLACK);
         tft.fillRect(0, 85, 160, 16, TFT_DARKPURPLE);  // update information panel
         sprintf(s, "BPF: %sMHz", hmi_o_bpf[hmi_menu_opt_display]);
@@ -1343,7 +1375,6 @@ void hmi_evaluate(void)  //hmi loop
         sprintf(s, " %s ", hmi_o_mode[band_vars[hmi_band][HMI_S_MODE]]);  // update mode
         print_current_mode(s);                                            //
         break;
-
     }
 
     hmi_menu_old = hmi_menu;
@@ -1386,17 +1417,17 @@ void print_current_mode(char *s) {
 //#################################################################################################//
 
 
-void touch_evaluate() {  
+void touch_evaluate() {
   // uses raw touch functions with reduced sampling to save time.
   // tft.getTouch() is too slow, so we need less oversampling + convert + filter.
 
 
-  if (block_touch) {
-   block_touch --;
-   return;
+  if (touch_delay) {
+    touch_delay--;
+    return;
   }
 
-  const int samples = 10;  
+  const int samples = 10;
   uint16_t xs[samples], ys[samples];
   tft.getTouchRawZ();
   tox = toy = 0;
@@ -1410,47 +1441,48 @@ void touch_evaluate() {
       ys[valid] = y;
       valid++;
     }
-    delayMicroseconds(50); // ADC settle time
+    delayMicroseconds(50);  // ADC settle time
   }
 
-  if (valid == 0) 
-     return; // no touch
+  if (valid == 0)
+    return;  // no touch
 
   // --- Median filter ---
   for (int i = 1; i < valid; i++) {
-    for (int j = i; j > 0 && xs[j] < xs[j-1]; j--) {
-      uint16_t tmp = xs[j]; 
-      xs[j] = xs[j-1]; xs[j-1] = tmp;
+    for (int j = i; j > 0 && xs[j] < xs[j - 1]; j--) {
+      uint16_t tmp = xs[j];
+      xs[j] = xs[j - 1];
+      xs[j - 1] = tmp;
     }
-    for (int j = i; j > 0 && ys[j] < ys[j-1]; j--) {
-      uint16_t tmp = ys[j]; 
-      ys[j] = ys[j-1]; ys[j-1] = tmp;
+    for (int j = i; j > 0 && ys[j] < ys[j - 1]; j--) {
+      uint16_t tmp = ys[j];
+      ys[j] = ys[j - 1];
+      ys[j - 1] = tmp;
     }
   }
 
-  uint16_t x = xs[valid/2];
-  uint16_t y = ys[valid/2];
+  uint16_t x = xs[valid / 2];
+  uint16_t y = ys[valid / 2];
 
 
 
   // --- Reject obvious false positives ---
-  if (x > 320 || y > 240) { 
+  if (x > 320 || y > 240) {
     tox = toy = 0;
     return;
   }
 
   tox = x;
   toy = y;
-  
-  
+
+
   //char s[30];
- // sprintf(s, " x%d  y%d", x, y);
-// Serialx.println(s);
+  // sprintf(s, " x%d  y%d", x, y);
+  // Serialx.println(s);
 
 
 
- hmi_handler(99); 
-
+  hmi_handler(99);
 }
 
 
