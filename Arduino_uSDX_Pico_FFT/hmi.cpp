@@ -142,7 +142,7 @@ Menu Waterfall Gain: Press Enter and keep pressed. Change waterfall gain while p
 
 
 //char hmi_o_menu[NUMBER_OF_MENUES][8] = {"Tune","Mode","AGC","Pre","VOX"};	// Indexed by hmi_menu  not used - menus done direct in Evaluate()
-char hmi_o_mode[HMI_NUM_OPT_MODE][8] = { "USB", "LSB", "AM ", "CW " };                 // Indexed by band_vars[hmi_band][HMI_S_MODE]  MODE_USB=0 MODE_LSB=1  MODE_AM=2  MODE_CW=3
+char hmi_o_mode[HMI_NUM_OPT_MODE][8] = { "USB", "LSB", "AM", "AM2", "CW " };      // Indexed by band_vars[hmi_band][HMI_S_MODE]  MODE_USB=0 MODE_LSB=1  MODE_AM=2  MODE_CW=3
 char hmi_o_agc[HMI_NUM_OPT_AGC][8] = { "OFF", "Slow ", "Fast " };                      // Indexed by band_vars[hmi_band][HMI_S_AGC]
 char hmi_o_pre[HMI_NUM_OPT_PRE][8] = { "-30dB", "-20dB", "-10dB", "0dB  ", "+10dB" };  // Indexed by band_vars[hmi_band][HMI_S_PRE]
 char hmi_o_vox[HMI_NUM_OPT_VOX][8] = { "OFF", "LOW", "Mid", "HIGH" };                  // Indexed by band_vars[hmi_band][HMI_S_VOX]                                                            //index for NoVOX option
@@ -188,7 +188,7 @@ const uint32_t band_upper_limit[NUMBER_OF_BANDS] = {
   27700000,  // Citizen Band (CB)
   28500000,  // Amateur-10m/1
   29700000,  // Amateur-10m/2
-  1710000,   // AM Radio
+  2000000,   // AM Radio
   6000000,   // Shortwave 2–6 MHz
   12000000,  // Shortwave 6–12 MHz
   24000000,  // Shortwave 12–24 MHz
@@ -241,12 +241,12 @@ const uint32_t hmi_step[HMI_NUM_OPT_TUNE] = { 10000000L, 1000000L, 100000L, 1000
 const uint32_t hmi_minfreq[NUMBER_OF_BANDS] = { 0000000L, 2000000L, 5000000L, 5000000L, 10000000L, 10000000L, 10000000L, 20000000L, 20000000L, 20000000L, 20000000L, 000000L, 2000000L, 5000000L, 10000000L, 20000000L };      // min freq for each band from pass band filters
 const uint32_t hmi_maxfreq[NUMBER_OF_BANDS] = { 2500000L, 6000000L, 12000000L, 12000000L, 24000000L, 24000000L, 24000000L, 40000000L, 40000000L, 40000000L, 40000000L, 2500000L, 6000000L, 12000000L, 24000000L, 40000000L };  // max freq for each band from pass band filters
 
-#ifdef PY2KLA_setup
-#define HMI_MULFREQ 4  // Factor between HMI and actual frequency
-#else
-#define HMI_MULFREQ 1  // Factor between HMI and actual frequency \
+//#ifdef PY2KLA_setup
+//#define HMI_MULFREQ 4  // Factor between HMI and actual frequency
+//#else
+#define HMI_MULFREQ 4 // Factor between HMI and actual frequency 
                        // Set to 1, 2 or 4 for certain types of mixer
-#endif
+//#endif
 
 
 char s[100];  //aux to print to the screen
@@ -380,7 +380,7 @@ uint8_t hmi_menu_last = HMI_S_BPF;  //Always start with bands menue
   if (event == 99) {
 
    // Simulate encoder
-if (toy > 145 && toy < 165) {
+if (toy > 135 && toy < 160) {
     if (tox > 160 && tox < 200) {
         event = HMI_E_DECREMENT;
     } else if (tox > 200 && tox < 240) {
@@ -390,21 +390,19 @@ if (toy > 145 && toy < 165) {
 }
 
 
-    if (toy > 100 && toy < 125 && tox > 160 && tox < 240) {  // simulate Enter
+    if (toy > 80 && toy < 115 && tox > 160 && tox < 240) {  // simulate Enter
         event = HMI_E_SUBMENU;  //Enter
       touch_delay = 2;
     }
 
 
-  if (toy >125 && toy < 145) {  // simulate pushbutton presses, does not work in CW
+  if (toy >115 && toy < 135) {  // simulate L/R
 
       if (tox > 200 && tox < 240)
         event = HMI_E_RIGHT;  
 
         if (tox > 160 && tox < 200)
         event = HMI_E_LEFT;  
-
-
 
       touch_delay = 2;
     }
@@ -420,7 +418,7 @@ if (toy > 145 && toy < 165) {
     }
 
 
-    if (toy > 180) {  // snippet to adjust hmi_freq when tapping on waterfall
+    if (toy > 200) {  // snippet to adjust hmi_freq when tapping on waterfall
       if (tox < 160)
         hmi_freq -= (80 - tox / 2) * 1000;
       if (tox > 160)
@@ -434,9 +432,11 @@ if (toy > 145 && toy < 165) {
       return;
     }
 
-    if (toy > 150 && toy < 170 && tox < 160)
-      fft_gain = tox;
-  }
+    if (toy > 150 && toy < 170 && tox < 160) // snippet to ajust fft gain
+      fft_gain = tox ;
+      }
+  
+  
   // snippet to set cursor with touch
   if (toy > 15 && toy < 50) {
 
@@ -484,14 +484,14 @@ if (toy > 145 && toy < 165) {
 
 
 #ifdef USE_TOUCH_SCREEN
-    if ((event == HMI_E_ENTER) || (tox > 250 && (toy > 45 && toy < 80))) {
+    if ((event == HMI_E_ENTER) || (tox > 250 && (toy > 45 && toy < 80))) { // set mode through touch
       touch_delay = 5;
 #else
     if (event == HMI_E_ENTER)  // ENTER now sets mode
     {
 #endif
       band_vars[hmi_band][HMI_S_MODE]++;
-      if (band_vars[hmi_band][HMI_S_MODE] > 3)
+      if (band_vars[hmi_band][HMI_S_MODE] > 4)
         band_vars[hmi_band][HMI_S_MODE] = 0;
       hmi_menu_opt_display = band_vars[hmi_band][HMI_S_MODE];
     }
@@ -515,18 +515,13 @@ if (toy > 145 && toy < 165) {
       
       hmi_freq += hmi_step[hmi_menu_opt_display];  // Increment selected digit
 
-      if (hmi_freq > band_upper_limit[hmi_band]) {  // Limit to upper band limit
-        hmi_freq = band_upper_limit[hmi_band];
-      
-      }
+ 
     } else if (event == HMI_E_DECREMENT) {
 
        hmi_menu_opt_display = band_vars[hmi_band][HMI_S_TUNE]; // fixes step change bug
 
       hmi_freq -= hmi_step[hmi_menu_opt_display];   // Decrement selected digit
-      if (hmi_freq < band_lower_limit[hmi_band]) {  // Limit to upper band limit
-        hmi_freq = band_lower_limit[hmi_band];
-      }
+     
     }
 
 
@@ -559,10 +554,6 @@ if (toy > 145 && toy < 165) {
       // Update band variable
       band_vars[hmi_band][HMI_S_TUNE] = hmi_menu_opt_display;
     }
-
-
-
-
 
 
   } else  //in submenus
@@ -1372,7 +1363,7 @@ void hmi_evaluate(void)  //hmi loop
         tft.setCursor(15, 95);
         tft.print(s);
 
-        sprintf(s, " %s ", hmi_o_mode[band_vars[hmi_band][HMI_S_MODE]]);  // update mode
+        sprintf(s, " %s", hmi_o_mode[band_vars[hmi_band][HMI_S_MODE]]);  // update mode
         print_current_mode(s);                                            //
         break;
     }

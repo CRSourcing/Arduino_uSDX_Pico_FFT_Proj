@@ -74,7 +74,7 @@ extern "C" {
 */
 
 #define HMI_NUM_OPT_TUNE	8  // = amount of fields to position cursor, tune step
-#define HMI_NUM_OPT_MODE	4
+#define HMI_NUM_OPT_MODE	5 // now 5 modes
 #define HMI_NUM_OPT_AGC	3
 #define HMI_NUM_OPT_PRE	5
 #define HMI_NUM_OPT_VOX	4
@@ -83,8 +83,9 @@ extern "C" {
 //"USB","LSB","AM","CW"
 #define MODE_USB  0
 #define MODE_LSB  1
-#define MODE_AM   2
-#define MODE_CW   3
+#define MODE_AM  2
+#define MODE_AM2  3
+#define MODE_CW   4
 
 #define USE_TOUCH_SCREEN
 
@@ -93,7 +94,7 @@ extern "C" {
 #define NUMBER_OF_BANDS	16
 extern uint8_t  band_vars[NUMBER_OF_BANDS][NUMBER_OF_MENUES];
 
-#define START_BAND 15 // band to start transceiver
+#define START_BAND 11 // band to start transceiver
 
 // Starting freqs when band gets called
 
@@ -106,13 +107,13 @@ extern uint8_t  band_vars[NUMBER_OF_BANDS][NUMBER_OF_MENUES];
 #define b6  21300000LU
 #define b7  24900000LU
 #define b8  27455000LU
-#define b9  28080000LU
+#define b9  28074000LU
 #define b10 28500000LU
-#define b11  1000000LU
+#define b11  870000LU
 #define b12 5000000LU
 #define b13 9000000LU
-#define b14 13500000LU
-#define b15 24040400LU
+#define b14 13820000LU
+#define b15 24000000LU
 
 
 

@@ -19,7 +19,7 @@ extern "C" {
 #define FSAMP 480000UL  // freq AD sample / 3 channels = 160kHz
 #define FSAMP_AUDIO 16000U  // audio freq sample   32kHz=critical time
 #define ADC_CLOCK_DIV ((uint16_t)(48000000UL/FSAMP))  //48Mhz / 480Khz = 100 
-#define FRES      500u    //Hz resolucao de frequencias desejado para cada bin
+#define FRES   500u    //Hz resolucao de frequencias desejado para cada bin
 #define FFT_NSAMP      ((((uint16_t)((FSAMP / 3u) / FRES))+1u) & (~(uint16_t)1u))  // must be even  160k / 500 = 320
 //FFT max freq = (FSAMP/3) / 2
 #define FFT_NUMFREQ    (FFT_NSAMP/2)
@@ -78,6 +78,7 @@ void dsp_setagc(int agc);
 void dsp_setmode(int mode);
 void dsp_setvox(int vox);
 int dsp_getmode(void);
+int16_t rectangular_2_phase(int16_t i, int16_t q);
 
 //extern volatile uint16_t adc_audio_ready;
 extern volatile uint16_t tim_count;
@@ -113,7 +114,6 @@ extern volatile uint16_t agc_gain;
 
 
 extern volatile uint16_t fft_gain;
-
 extern volatile uint16_t dac_iq, dac_audio;
 
 //extern volatile uint32_t hmi_freq_fft;

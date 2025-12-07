@@ -485,13 +485,16 @@ void initColorLUTFire() {
     colorLUTFire[val] = rgb565(r,g,b);
   }
 }
-//**** draws the waterfall, is time critical, now pushes an entire line instead of drawing pixels like in the original version
+
+
+
+//**** draws the waterfall, is time critical, now pushes an entire line instead of drawing pixels 
 
 void display_fft_graf(uint16_t freq) {
   static uint16_t freq_old = 7080;
   int16_t freq_change = (int16_t)freq - (int16_t)freq_old;
 
-  uint16_t extra_color = TFT_LIGHTGREY;
+  uint16_t extra_color = 0xc658;
 
   // Plot waterfall
   for (int y = 0; y < GRAPH_NUM_LINES; y ++) {
@@ -500,7 +503,7 @@ void display_fft_graf(uint16_t freq) {
    static uint16_t lineBuf[GRAPH_NUM_COLS];
 
 for (int x = 0; x < GRAPH_NUM_COLS; x++) {
-  uint16_t val = vet_graf_fft[y][x] * 25;   // scaling factor
+  uint16_t val = vet_graf_fft[y][x] * 3;   // scaling factor
   val = constrain(val, 0, 255);
 
   uint16_t re;
@@ -597,7 +600,7 @@ else if (sel_graph > 1 && aud_var < 2)
        tft.drawPixel((x + X_MIN_AUD_GRAPH), (Y_MIN_AUD_GRAPH + AUD_GRAPH_MAX - aud), color);        
     else // vectorscope
       if (( aud_samp[0][x] < 26 && aud_samp[0][x] > -26) && (aud_samp[1][x] < 26 && aud_samp[1][x] > -26))
-       tft.drawPixel( X_MIN_AUD_GRAPH + 50 + (int32_t) aud_samp[0][x] * 1.5f , (Y_MIN_AUD_GRAPH + AUD_GRAPH_MAX +  aud_samp[1][x]), TFT_WHITE);     
+       tft.drawPixel( X_MIN_AUD_GRAPH + 50 + (int32_t) aud_samp[0][x]  , (Y_MIN_AUD_GRAPH + AUD_GRAPH_MAX +  aud_samp[1][x]), TFT_WHITE);     
     }
   }
   
@@ -725,20 +728,15 @@ tft.fillScreen(TFT_BACKGROUND);
 
 #ifdef USE_TOUCH_SCREEN
 tft.setFreeFont(FONT1);
-tft.fillRect(160, 90, 65,67 , TFT_DARKGREEN);
-
-
-tft.setTextColor(TFT_RED);
-tft.setCursor(162, 102);
-tft.print("TOUCH:");
+tft.fillRect(160, 86, 65,71 , TFT_DARKGREEN);
 
 
 tft.setTextColor(TFT_GREEN);
-tft.setCursor(165, 118);
-tft.print("ENTER");
+tft.setCursor(170, 105);
+tft.print("MENU");
 
-tft.setCursor(160, 135);
-tft.print("SELECT");
+tft.setCursor(160, 130);
+tft.print("-ITEM+");
 tft.setCursor(165, 152);
 tft.print("-VAL+");
 #endif
