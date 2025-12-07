@@ -10,6 +10,9 @@ New UI:
 
 ![uSDR-PICO FFT](20251117_151926.jpg)
 
+![uSDR-PICO FFT](20251207_093754.jpg)
+
+
 
 Original UI:
 
