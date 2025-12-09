@@ -4,11 +4,27 @@
 ### (based on Arjan te Marvelde / uSDR-pico)
 
 This fork creates a modified UI with different pushbutton functionality. 16 predefined bands can now be selected with the encoder. A colored waterfall is now also available and the waterfall drawing 
-function has been optimized for speed and reduction of artefacts. Audio record and save to flash heve been removed sice both did not work for me. Experimental touch screen support has been included. To use the touch screen, uncomment //#define USE_TOUCH_SCREEN in hmi.h. Connect TOUCH CS pin with GPIO 14, TOUCH CLK pin with GPIO 10 and TOUCH MISO pin with GPIO 12. Use the included file Setup60_RP2040_ILI9341.h to replace the original file in the TFT_eSPI library. An I/Q vector scope has been added.Please note that this code is experimental and will need tweaks and optimization.   
+function has been optimized for speed and reduction of artefacts. Audio record and save to flash heve been removed sice both did not work for me. Experimental touch screen support has been included. 
+
+To use the touch screen, uncomment //#define USE_TOUCH_SCREEN in hmi.h. Connect TOUCH CS pin with GPIO 14, TOUCH CLK pin with GPIO 10 and TOUCH MISO pin with GPIO 12. Use the included file Setup60_RP2040_ILI9341.h to replace the original file in the TFT_eSPI library. An I/Q vector scope has been added.Please note that this code is experimental and will need tweaks and optimization.   
+
+For better anti-aliasing and mirror supression of the waterfall consider the following hardware changes:
+Connect R36 to + 3.3V instead of +5V. 
+Connect Pin 8 of the LT6231 to +3.3V instead of +5V. 
+Replace C7 and C13 with 6.8K resistors.
+Connect a 470 pF cap parallel to the resistor that replaces C13.
+From the ADC side of each resistor connect a 1nF cap to ground.
+
+This will: 
+1. Adjust the LT6231 output range to the input range of the ADC's. 
+2. Restore the DC path between op amp and ADC.
+3. Create two low pass filters that reduce aliasing at the 80KHz boundaries.
+4. The 470 pF cap will reduce the skew between I and Q. This skew is caused by the 2 uS sampling delay between Q and I and causes mirrors in the waterfall.    
+
+
+
 
 New UI:
-
-![uSDR-PICO FFT](20251117_151926.jpg)
 
 ![uSDR-PICO FFT](20251207_093754.jpg)
 
