@@ -26,7 +26,7 @@ This will:
 
 New UI:
 
-![uSDR-PICO FFT](20251207_093754.jpg)
+![uSDR-PICO FFT](20251208_171250.jpg)
 
 
 
