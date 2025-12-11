@@ -303,6 +303,9 @@ void Setup_Band(uint8_t band) {
     hmi_freq = hmi_minfreq[band];
   }
 
+
+ fft_gain = BAND_DEPENDING_FFT_GAIN;  // increase fft gain with freq since signal strength and atmospheric noise decreases  
+
   print_Band(band);
 
 
@@ -418,7 +421,7 @@ if (toy > 135 && toy < 160) {
     }
 
 
-    if (toy > 200) {  // snippet to adjust hmi_freq when tapping on waterfall
+    if (toy > 190) {  // snippet to adjust hmi_freq when tapping on waterfall
       if (tox < 160)
         hmi_freq -= (80 - tox / 2) * 1000;
       if (tox > 160)
@@ -509,19 +512,25 @@ if (toy > 135 && toy < 160) {
     }
 
 
+
     else if (event == HMI_E_INCREMENT) {
 
       hmi_menu_opt_display = band_vars[hmi_band][HMI_S_TUNE]; // fixes step change bug
       
       hmi_freq += hmi_step[hmi_menu_opt_display];  // Increment selected digit
 
- 
+      if (hmi_freq > band_upper_limit[hmi_band]) {  // wrap
+        hmi_freq = band_lower_limit[hmi_band];
+      
+      }
     } else if (event == HMI_E_DECREMENT) {
 
        hmi_menu_opt_display = band_vars[hmi_band][HMI_S_TUNE]; // fixes step change bug
 
       hmi_freq -= hmi_step[hmi_menu_opt_display];   // Decrement selected digit
-     
+      if (hmi_freq < band_lower_limit[hmi_band]) {  // Limit to upper band limit
+        hmi_freq = band_upper_limit[hmi_band];
+      }
     }
 
 
@@ -687,22 +696,22 @@ void hmi_callback(uint gpio, uint32_t events) {
 
       break;
     case GP_AUX_0_Enter:  // Enter
-      if (events & GPIO_IRQ_EDGE_FALL) {
+      if (events & GPIO_IRQ_EDGE_RISE) { // Was FALL. RISE seems to cause less baouncing than FALL
         evt = HMI_E_ENTER;
       }
       break;
     case GP_AUX_1_Escape:  // Escape
-      if (events & GPIO_IRQ_EDGE_FALL) {
+      if (events & GPIO_IRQ_EDGE_RISE) {
         evt = HMI_E_SUBMENU;
       }
       break;
     case GP_AUX_2_Left:  // Previous
-      if (events & GPIO_IRQ_EDGE_FALL) {
+      if (events & GPIO_IRQ_EDGE_RISE) {
         evt = HMI_E_LEFT;
       }
       break;
     case GP_AUX_3_Right:  // Next
-      if (events & GPIO_IRQ_EDGE_FALL) {
+      if (events & GPIO_IRQ_EDGE_RISE) {
         evt = HMI_E_RIGHT;
       }
       break;
@@ -740,7 +749,7 @@ void hmi_callback(uint gpio, uint32_t events) {
  */
 void hmi_init0(void) {
   // Initialize LCD and set VFO
-  Setup_Band(hmi_band);  //                                                             why was commented out?
+  Setup_Band(hmi_band);  //                                                             why was this commented out?
                          //  menu position = Tune  and  cursor position = hmi_menu_opt_display
   hmi_menu = HMI_S_TUNE;
   hmi_menu_opt_display = band_vars[hmi_band][HMI_S_TUNE];  // option on Tune is the cursor position
@@ -808,10 +817,11 @@ for(;;)
   // Set callback, one for all GPIO, not sure about correctness!
   gpio_set_irq_enabled_with_callback(GP_ENC_A, GPIO_IRQ_EDGE_ALL, true, hmi_callback);
 
-
-
-  uint16_t calData[5] = { 379, 3519, 197, 3591, 1 };
+#ifdef USE_TOUCH_SCREEN
+  uint16_t calData[5] = { 379, 3519, 197, 3591, 1 }; // modify as needed
   tft.setTouch(calData);
+#endif
+
 }
 
 
@@ -832,12 +842,6 @@ for(;;)
 
 #define x_plus2 (x_RT + (2 * X_CHAR2) + 13)  //position for the second +
 #define y_plus2 (y_RT - 3)
-
-
-
-
-
-
 
 
 

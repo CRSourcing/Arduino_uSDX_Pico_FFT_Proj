@@ -35,8 +35,8 @@ extern "C" {
 //#define HMI_debug
 
 /* Menu definitions (band vars array position) */
-#define HMI_S_TUNE			0
-#define HMI_S_MODE			1
+#define HMI_S_TUNE		0
+#define HMI_S_MODE		1
 #define HMI_S_AGC			2
 #define HMI_S_PRE			3
 #define HMI_S_VOX			4
@@ -88,7 +88,7 @@ extern "C" {
 #define MODE_CW   4
 
 #define USE_TOUCH_SCREEN
-
+#define BAND_DEPENDING_FFT_GAIN 32+ hmi_freq / 1000 / 250; // This increases fft_gain automatically when switching to a higher fband
 
 
 #define NUMBER_OF_BANDS	16
@@ -142,7 +142,6 @@ void hmi_evaluate(void);
 void print_current_mode (char *s); 
 void print_Band(uint8_t band);
 void touch_evaluate(void);
-//#define TST_MAX_SMETER_SWR  1
 static inline uint16_t swapBytes(uint16_t);
 
 #ifdef __cplusplus

@@ -506,6 +506,7 @@ for (int x = 0; x < GRAPH_NUM_COLS; x++) {
   uint16_t val = vet_graf_fft[y][x] * 3;   // scaling factor
   val = constrain(val, 0, 255);
 
+
   uint16_t re;
 #ifdef USE_TOUCH_SCREEN
   static bool lutoption = false;
@@ -624,6 +625,9 @@ for (int y = Y_MIN_AUD_GRAPH; y < Y_MIN_AUD_GRAPH + (AUD_GRAPH_MAX - AUD_GRAPH_M
   }
 }
 
+
+
+
  // if(tx_enabled)
   {
  //   aud_samp_trigger = AUD_SAMP_MIC;  
@@ -685,7 +689,7 @@ void display_intro(void) {
   tft.drawRoundRect(35, 25, 250, 70, 15, TFT_YELLOW);
 
 //  sprintf(s, "uSDR Pico FFT");  //name changed from uSDR Pico FFT
-  sprintf(s, "16 Band SSB/AM/CW");  //name changed from uSDR Pico FFT
+  sprintf(s, "    SSB/AM/CW");  //name changed from uSDR Pico FFT
 //  tft_writexy_plus(2, TFT_YELLOW, TFT_BACKGROUND, 0,0,3,10,(uint8_t *)s);
   tft_writexy_plus(1, TFT_YELLOW, TFT_BACKGROUND, 3,0,5,0,(uint8_t *)s);
 
@@ -728,7 +732,7 @@ tft.fillScreen(TFT_BACKGROUND);
 
 #ifdef USE_TOUCH_SCREEN
 tft.setFreeFont(FONT1);
-tft.fillRect(160, 86, 65,71 , TFT_DARKGREEN);
+tft.fillRoundRect(160, 86, 65,71 , 3, TFT_DARKGREEN);
 
 
 tft.setTextColor(TFT_GREEN);
@@ -765,7 +769,7 @@ tft.setTextColor(TFT_YELLOW, TFT_BACKGROUND);
 tft.print("PK ");
 
 tft.setTextColor(TFT_MAGENTA, TFT_BACKGROUND);
-tft.print("GN "); 
+tft.print("GN"); 
 
 
 tft.setCursor (245, 45); // display frequency KHz label

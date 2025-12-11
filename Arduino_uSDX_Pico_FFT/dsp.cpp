@@ -83,31 +83,30 @@ bool vox(void);
 
 
 
+
 /*
 
 FIR filter designed with
-http://t-filter.engineerjs.com/
+http://t-filter.appspot.com
 
 sampling frequency: 8000 Hz
 
 fixed point precision: 16 bits
 
-* 0 Hz - 300 Hz
-  gain = 0
-  desired attenuation = -40 dB
-  actual attenuation = n/a
-
-* 550 Hz - 750 Hz
+* 0 Hz - 3800 Hz
   gain = 1
-  desired ripple = 5 dB
+  desired ripple = 2 dB
   actual ripple = n/a
 
-* 1000 Hz - 4000 Hz
+* 4000 Hz - 4000 Hz
   gain = 0
   desired attenuation = -40 dB
   actual attenuation = n/a
 
 */
+
+
+
 
 #define CW_BPF_TAP_NUM   49     // band pass filter for CW
 
@@ -166,6 +165,7 @@ static int16_t cw_bpf_taps[CW_BPF_TAP_NUM] = {
 
 
 
+
 /*
 
 FIR filter designed with
@@ -208,6 +208,7 @@ static int16_t ssb_lpf_taps[SSB_LPF_TAP_NUM] = {
   344,
   398
 };
+
 
 
 
@@ -256,6 +257,69 @@ static int16_t am_lpf_taps[AM_LPF_TAP_NUM] = {
   -380,
   422
 };
+
+
+/*
+FIR filter designed with
+http://t-filter.appspot.com
+
+sampling frequency: 16000 Hz
+
+fixed point precision: 16 bits
+
+* 0 Hz - 4000 Hz
+  gain = 1
+  desired ripple = 1 dB
+  actual ripple = 1.37 dB
+
+* 5000 Hz - 8000 Hz
+  gain = 0
+  desired attenuation = -40 dB
+  actual attenuation = -34.81 dB
+
+*/
+
+
+#define AM_LPF2_TAP_NUM 21
+
+static int16_t am_lpf2_taps[AM_LPF2_TAP_NUM] = {
+  -362,
+  703,
+  1337,
+  -271,
+  -1163,
+  1218,
+  1486,
+  -2890,
+  -1680,
+  10225,
+  18136,
+  10225,
+  -1680,
+  -2890,
+  1486,
+  1218,
+  -1163,
+  -271,
+  1337,
+  703,
+  -362
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -350,13 +414,11 @@ void dsp_setmode(int mode)  //MODE_USB=0 MODE_LSB=1  MODE_AM=2  MODE_CW=3
   
     else if(dsp_mode == MODE_AM2)  //AM
   {
-    mode_filter_tap_num = AM_LPF_TAP_NUM;      // band pass filter for AM
-    mode_filter_taps = am_lpf_taps;
+    mode_filter_tap_num = AM_LPF2_TAP_NUM;      //band pass filter for AM (stronger low freq attenuation)
+    mode_filter_taps = am_lpf2_taps;
   }
   
-  
-  
-  
+
   else  //CW
   {
     mode_filter_tap_num = CW_BPF_TAP_NUM;      // band pass filter for CW
@@ -689,8 +751,6 @@ The sampling is at 160kHz but for audio we only need 16kHz samples, so the filte
         multicore_fifo_push_blocking(FIFO_IQ_SAMPLE);    
       }
     }
-    
-    
     else  //RX and not CW, audio = 16kHz
     {
       // result = sum of last samples = average = low pass filter
@@ -803,8 +863,6 @@ The sampling is at 160kHz but for audio we only need 16kHz samples, so the filte
   }
 
 
-
-
   //prepare next block position
 #if LOW_PASS_16KHZ == LOW_PASS_16KHZ_FIR  
   adc_samp_last_block_pos3 = adc_samp_last_block_pos2;  //16kHz LP FIR use one more block
@@ -816,30 +874,15 @@ The sampling is at 160kHz but for audio we only need 16kHz samples, so the filte
   adc_samp_block_pos&=ADC_NUM_BLOCK_MASK;
 
   //time counter
- 
-
   if(++tim_count_loc >= (FSAMP_AUDIO/1000u))   // DMA 16kHz / 16 = 1kHz = 1ms
   {
     tim_count++;       // 1ms time counter
     tim_count_loc = 0;
   }
 
-/*
- while(++tim_count_loc >= (FSAMP_AUDIO/5000u))   // DMA 16kHz / 16 = 1kHz = 1ms
-  {
-    tim_count++;       // 1ms time counter
-    tim_count_loc = 0;
-  }
-*/
-
   gpio_clr_mask(1<<14);
   
 }
-
-
-
-
-
 
 
 
@@ -948,44 +991,20 @@ bool rx(void)
 	uint16_t k;
 
 
-	/*
-   * Store new sample
-	 * Attenuate with AGC feedback from AUDIO GENERATION stage
-	 * This behavior in essence is exponential, complementing the logarithmic peak detector
-	 */
-/*
-#ifdef EXCHANGE_I_Q
-  // Take last ADC 0 result, connected to Q input  (16 bits size)
-  i_sample = ((int32_t)(agc_gain * fft_gain) * (int32_t)adc_result[0])>>(AGC_GAIN_SHIFT + FFT_GAIN_SHIFT);
-  // Take last ADC 1 result, connected to I input  (16 bits size)
-  q_sample = ((int32_t)(agc_gain * fft_gain) * (int32_t)adc_result[1])>>(AGC_GAIN_SHIFT + FFT_GAIN_SHIFT);
-#else
-  // Take last ADC 0 result, connected to Q input  (16 bits size)
-  q_sample = ((int32_t)(agc_gain * fft_gain) * (int32_t)adc_result[0])>>(AGC_GAIN_SHIFT + FFT_GAIN_SHIFT);
-  // Take last ADC 1 result, connected to I input  (16 bits size)
-  i_sample = ((int32_t)(agc_gain * fft_gain) * (int32_t)adc_result[1])>>(AGC_GAIN_SHIFT + FFT_GAIN_SHIFT);
-#endif
-*/
-#ifdef EXCHANGE_I_Q
   // Take last ADC 0 result, connected to I input  (16 bits size)
-  i_sample = adc_result[0];
+   i_sample = adc_result[0];
   // Take last ADC 1 result, connected to Q input  (16 bits size)
-  q_sample = adc_result[1];
-#else
-  // Take last ADC 0 result, connected to Q input  (16 bits size)
-  q_sample = adc_result[0];
-  // Take last ADC 1 result, connected to I input  (16 bits size)
-  i_sample = adc_result[1];
-#endif
+   q_sample = adc_result[1];
 
 
   /*
-   * IIR filter: dc = a*sample + (1-a)*dc  where a = 1/128
+   * FIR filter: dc = a*sample + (1-a)*dc  where a = 1/128
    * Amplitude of samples should fit inside [-2048, 2047]
    */
   /* 
    * Shift-in I and Q raw samples 
    */
+   
   for (i=0; i<(mode_filter_tap_num-1u); i++)
   {
     q_s_raw[i] = q_s_raw[i+1];          // Q raw samples shift register
@@ -1065,14 +1084,17 @@ if(aud_samples_state == AUD_STATE_SAMP_IN)    //store variables for scope graphi
     //a_sample = i_s[7];  
     break;
 	
-  case MODE_AM2:											//AM
-		/*
-		 * AM demodulate: sqrt(sqr(i)+sqr(q))
-		 * Approximated with MAG(i,q)
-		 */
-		//a_sample = MAG(i_s[(7)], q_s[(7)]);  //MAG from the last filtered I Q sample
-     a_sample = i_s[7];  
+  case MODE_AM2:		// different min/max approximation, flat filter 
+{
+ int  i = i_s[(7)], q = q_s[(7)];
+  //Measure magnitude
+ int16_t absi = i>0?i:-i;
+ int16_t absq = q>0?q:-q;
+a_sample = absi > absq ? absi + absq / 4 : absq + absi / 4;
+
+}
     
+
     break;
   
   
@@ -1221,6 +1243,8 @@ if(aud_samples_state == AUD_STATE_SAMP_IN)    //store variables for scope graphi
     /* audio output in normal use */
     pwm_set_chan_level(dac_audio, PWM_CHAN_A, out_sample);  //rx audio out
 
+  
+
 
   //store variables for scope graphic
   if(aud_samples_state == AUD_STATE_SAMP_IN)
@@ -1235,6 +1259,10 @@ if(aud_samples_state == AUD_STATE_SAMP_IN)    //store variables for scope graphi
       aud_samples_state = AUD_STATE_SAMP_RDY;
     }
   }
+
+
+
+
 
 
 //  gpio_clr_mask(1<<LED_BUILTIN);
@@ -1511,6 +1539,7 @@ void tx(void)
 //	return true;
 }
 
+/**************************************************************************************/ 
 
 int16_t fft_i_s[HILBERT_TAP_NUM], fft_q_s[HILBERT_TAP_NUM];          // Filtered I/Q samples
 kiss_fft_scalar fft_in_minus[FFT_NSAMP]; // kiss_fft_scalar is a float
@@ -1521,7 +1550,6 @@ kiss_fftr_cfg fft_cfg; // = kiss_fftr_alloc(FFT_NSAMP,false,0,0);
 int16_t qh;  
 uint16_t block_num;
 uint16_t block_pos;
-uint16_t aux_c1 = 0;
 uint16_t i_c1, j_c1;
 /************************************************************************************** 
  * CORE1: 
@@ -1613,10 +1641,7 @@ void dsp_core1_setup_and_loop()
 
 #define HILBERT_TAP_NUM 31 // 31 taps for waterfall
 #define HILBERT_SHIFT   14  // Q14 scaling
-
 static int16_t hilbert31[HILBERT_TAP_NUM];
-
-
 
     const int M   = HILBERT_TAP_NUM;      // 31
     const int mid = (M - 1) / 2;          // 15
@@ -1663,7 +1688,7 @@ static int     write_idx = 0;   // circular buffer pointer
 
 
 static float win_bh4[FFT_NSAMP];
-static int win_init = 0;
+static bool win_init = false;
 if (!win_init) {
     const float a0 = 0.35875f, a1 = 0.48829f, a2 = 0.14128f, a3 = 0.01168f;
     for (int n = 0; n < FFT_NSAMP; n++) {
@@ -1673,7 +1698,7 @@ if (!win_init) {
                    + a2 * cosf(2*phi)
                    - a3 * cosf(3*phi);
     }
-    win_init = 1;
+    win_init = true;
 }
 
 
@@ -1770,8 +1795,6 @@ for (j_c1 = 0; j_c1 < FFT_NSAMP; j_c1++) {
 
 
 
-
-
 // Apply window to USB/LSB blocks before FFT
 for (int n = 0; n < FFT_NSAMP; n++) {
     float w = win_bh4[n];
@@ -1800,7 +1823,6 @@ for (i_c1 = 0; i_c1 < FFT_NUMFREQ; i_c1++) {
         MAG(fft_out[i_c1].r, fft_out[i_c1].i);
 }
 
- 
       //graphic data is ready for graphic plotting  
       fft_display_graf_new = 1;
 
@@ -1808,6 +1830,14 @@ for (i_c1 = 0; i_c1 < FFT_NUMFREQ; i_c1++) {
 
 
     }
+
+
+
+
+      
+//    gpio_clr_mask(1<<14);
+   
+  
 
   }
   
