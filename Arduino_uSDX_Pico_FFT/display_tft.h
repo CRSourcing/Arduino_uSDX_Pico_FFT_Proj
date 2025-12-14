@@ -130,7 +130,7 @@ void tft_writexy_plus(uint16_t font, uint16_t color, uint16_t color_back, uint16
 void tft_cursor(uint16_t font, uint16_t color, uint8_t x, uint8_t y);
 void tft_cursor_plus(uint16_t font, uint16_t color, uint8_t x, uint8_t x_plus, uint8_t y, uint8_t y_plus);
 uint16_t tft_color565(uint16_t r, uint16_t g, uint16_t b);
-void initColorLUT(void); 
+
 
 // Smeter barr graph definitions
 #define MAX_Smeter_table  11   // S1, S2..   S9, S9+  S9++  = 11 steps
@@ -144,7 +144,7 @@ void display_static_elements(void);
 void display_tft_countdown(bool show, uint16_t val);
 void display_tft_loop(void);
 void display_aud_graf(void);
-
+void initColorLUTJet(void);
 
 
 #ifdef __cplusplus

@@ -83,12 +83,12 @@ extern "C" {
 //"USB","LSB","AM","CW"
 #define MODE_USB  0
 #define MODE_LSB  1
-#define MODE_AM  2
+#define MODE_AM   2
 #define MODE_AM2  3
 #define MODE_CW   4
 
 #define USE_TOUCH_SCREEN
-#define BAND_DEPENDING_FFT_GAIN 32+ hmi_freq / 1000 / 250; // This increases fft_gain automatically when switching to a higher fband
+#define BAND_RELATED_FFT_GAIN 32+ hmi_freq / 1000 / 250; // This increases fft_gain automatically when switching to a higher fband
 
 
 #define NUMBER_OF_BANDS	16

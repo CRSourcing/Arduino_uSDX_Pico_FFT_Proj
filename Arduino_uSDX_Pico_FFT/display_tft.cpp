@@ -145,37 +145,52 @@ void tft_cursor(uint16_t font, uint16_t color, uint8_t x, uint8_t y)
 }
 
 
-void tft_cursor_plus(uint16_t font, uint16_t color, uint8_t x, uint8_t x_plus, uint8_t y, uint8_t y_plus)
+
+
+
+void tft_cursor_plus(uint16_t font, uint16_t color,
+                     uint8_t x, uint8_t x_plus,
+                     uint8_t y, uint8_t y_plus)
 {
-  static uint16_t x_old = 0;
-  
-    if(font == 3)
-    {
-      for(uint16_t i=1; i<((Y_CHAR3 * SIZE3)/8); i++)
-      {
-        tft.drawFastHLine (x_old, (((y+1) * Y_CHAR3 * SIZE3) - i)+y_plus , ((X_CHAR3 * SIZE3)*9)/10, TFT_BACKGROUND);
-        tft.drawFastHLine ((x * X_CHAR3 * SIZE3)+x_plus, (((y+1) * Y_CHAR3 * SIZE3) - i)+y_plus , ((X_CHAR3 * SIZE3)*9)/10, color);
-      }
-      x_old = (x * X_CHAR3 * SIZE3)+x_plus;
+    static uint16_t x_old = 0;
+
+    // Select font metrics
+    uint16_t char_w, char_h, size, line_len;
+    switch (font) {
+        case 3:
+            char_w  = X_CHAR3;
+            char_h  = Y_CHAR3;
+            size    = SIZE3;
+            line_len = (char_w * size * 9) / 10; 
+            break;
+        case 2:
+            char_w  = X_CHAR2;
+            char_h  = Y_CHAR2;
+            size    = SIZE2;
+            line_len = char_w * size;
+            break;
+        default:
+            char_w  = X_CHAR1;
+            char_h  = Y_CHAR1;
+            size    = SIZE1;
+            line_len = char_w * size;
+            break;
     }
-    else if (font == 2)
-    {
-      for(uint16_t i=1; i<((Y_CHAR2 * SIZE2)/8); i++)
-      {
-        tft.drawFastHLine (x_old, (((y+1) * Y_CHAR2 * SIZE2) - i)+y_plus , X_CHAR2 * SIZE2, TFT_BACKGROUND);
-        tft.drawFastHLine ((x * X_CHAR2 * SIZE2)+x_plus, (((y+1) * Y_CHAR2 * SIZE2) - i)+y_plus , X_CHAR2 * SIZE2, color);
-      }
-      x_old = (x * X_CHAR2 * SIZE2)+x_plus;
+
+    // Draw cursor lines
+    uint16_t new_x = (x * char_w * size) + x_plus;
+    uint16_t base_y = (y + 1) * char_h * size;
+
+    for (uint16_t i = 1; i < (char_h * size) / 8; i++) {
+        uint16_t y_pos = base_y - i + y_plus;
+        // Erase old cursor
+        tft.drawFastHLine(x_old, y_pos, line_len, TFT_BACKGROUND);
+        // Draw new cursor
+        tft.drawFastHLine(new_x, y_pos, line_len, color);
     }
-    else
-    {
-      for(uint16_t i=1; i<((Y_CHAR1 * SIZE1)/8); i++)
-      {
-        tft.drawFastHLine (x_old, (((y+1) * Y_CHAR1 * SIZE1) - i)+y_plus , X_CHAR1 * SIZE1, TFT_BACKGROUND);
-        tft.drawFastHLine ((x * X_CHAR1 * SIZE1)+x_plus, (((y+1) * Y_CHAR1 * SIZE1) - i)+y_plus , X_CHAR1 * SIZE1, color);
-      }
-      x_old = (x * X_CHAR1 * SIZE1)+x_plus;
-    }
+
+    // Update cursor position
+    x_old = new_x;
 }
 
 
@@ -183,8 +198,13 @@ void tft_cursor_plus(uint16_t font, uint16_t color, uint8_t x, uint8_t x_plus, u
 /* used to allow calling from other modules, concentrate the use of tft variable locally */
 uint16_t tft_color565(uint16_t r, uint16_t g, uint16_t b)
 {
-  return tft.color565(r, g, b);
+    
+    return ((r & 0xF8) << 8) |   // 5 bits r
+           ((g & 0xFC) << 3) |   // 6 bits gr
+           ((b & 0xF8) >> 3);    // 5 bits bl
 }
+
+
 
 
 //#define bargraph_Y   (35+Y_CHAR2-3-8)   //line of display
@@ -419,14 +439,15 @@ void display_fft_graf_top(void)
 uint8_t vet_graf_fft[GRAPH_NUM_LINES][FFT_NSAMP];    // [NL][NCOL]
 //uint16_t vet_graf_fft_pos = 0;
 //********************************************************//
-uint16_t colorLUTJet[256];  // color lookup table, load at startup
-uint16_t colorLUTFire[256];  // color lookup table, load at startup
 
 // RGB565 conversion
 uint16_t rgb565(uint8_t r, uint8_t g, uint8_t b) {
   return ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3);
 }
 
+
+
+uint16_t colorLUTJet[256];  // waterfall color lookup table, load at startup
 
 void initColorLUTJet() {
   for (int val = 0; val < 256; val++) {
@@ -455,46 +476,15 @@ void initColorLUTJet() {
   }
 }
 
-void initColorLUTFire() {
-  for (int val = 0; val < 256; val++) {
-    float t = val / 255.0f;  // normalize 0..1
-    uint8_t r=0, g=0, b=0;
-
-    if (t < 0.20f) {          // Black → Purple
-      r = (uint8_t)(t / 0.20f * 128);   // ramp red up to 128
-      g = 0;
-      b = (uint8_t)(t / 0.20f * 128);   // ramp blue up to 128
-    } else if (t < 0.40f) {   // Purple → Red
-      r = (uint8_t)(128 + (t - 0.20f) / 0.20f * 127); // 128→255
-      g = 0;
-      b = (uint8_t)(128 - (t - 0.20f) / 0.20f * 128); // 128→0
-    } else if (t < 0.65f) {   // Red → Orange
-      r = 255;
-      g = (uint8_t)((t - 0.40f) / 0.25f * 128); // 0→128
-      b = 0;
-    } else if (t < 0.85f) {   // Orange → Yellow
-      r = 255;
-      g = (uint8_t)(128 + (t - 0.65f) / 0.20f * 127); // 128→255
-      b = 0;
-    } else {                  // Yellow → White
-      r = 255;
-      g = 255;
-      b = (uint8_t)((t - 0.85f) / 0.15f * 255); // 0→255
-    }
-
-    colorLUTFire[val] = rgb565(r,g,b);
-  }
-}
-
-
 
 //**** draws the waterfall, is time critical, now pushes an entire line instead of drawing pixels 
 
 void display_fft_graf(uint16_t freq) {
   static uint16_t freq_old = 7080;
   int16_t freq_change = (int16_t)freq - (int16_t)freq_old;
-
   uint16_t extra_color = 0xc658;
+
+
 
   // Plot waterfall
   for (int y = 0; y < GRAPH_NUM_LINES; y ++) {
@@ -507,20 +497,7 @@ for (int x = 0; x < GRAPH_NUM_COLS; x++) {
   val = constrain(val, 0, 255);
 
 
-  uint16_t re;
-#ifdef USE_TOUCH_SCREEN
-  static bool lutoption = false;
-
-  if (tox > 150 && tox < 170 && toy > 175 && toy < 185) { // toggle to alternative palette
-    lutoption = !lutoption;
-    tox = toy = 0;
-    touch_delay = 5; // block for a while to avoid toggeling
-  }
-
-  re = lutoption ? swapBytes(colorLUTFire[val]) : swapBytes(colorLUTJet[val]);  //need to swap byte order for tft.pushImage
-#else
-  re = swapBytes(colorLUTJet[val]); // only Jet palette available
-#endif
+  uint16_t re = swapBytes(colorLUTJet[val]); // only Jet palette available
 
 
   if (val) {
@@ -565,8 +542,6 @@ static inline uint16_t swapBytes(uint16_t c) {
 
 
 
-
-
 void display_aud_graf_var(uint16_t aud_pos, uint16_t aud_var, uint16_t color)
 {  
   int16_t x;
@@ -577,9 +552,6 @@ if (aud_var > 1 && aud_var != sel_graph && sel_graph < 6)// 6 means all graphs t
   return;
 else if (sel_graph > 1 && aud_var < 2)
    return;
-
-
-
 
 
   for(x=0; x<AUD_GRAPH_NUM_COLS; x++)
@@ -617,7 +589,7 @@ int16_t aud_samp_trigger;
   
   //erase graphic area
   //tft.fillRect(0, Y_MIN_DRAW - 10, display_WIDTH, 10, TFT_BACKGROUND);
-  tft.fillRect(X_MIN_AUD_GRAPH, Y_MIN_AUD_GRAPH, AUD_GRAPH_NUM_COLS, (AUD_GRAPH_MAX - AUD_GRAPH_MIN + 3), TFT_NAVY);
+  tft.fillRect(X_MIN_AUD_GRAPH, Y_MIN_AUD_GRAPH, AUD_GRAPH_NUM_COLS, (AUD_GRAPH_MAX - AUD_GRAPH_MIN), TFT_NAVY);
 
 for (int y = Y_MIN_AUD_GRAPH; y < Y_MIN_AUD_GRAPH + (AUD_GRAPH_MAX - AUD_GRAPH_MIN + 3); y += 5) {
   for (int x = X_MIN_AUD_GRAPH; x < X_MIN_AUD_GRAPH + AUD_GRAPH_NUM_COLS; x += 5) {
@@ -778,7 +750,6 @@ tft.setTextColor(TFT_GREEN);
 tft.print("KHz");
 
 initColorLUTJet(); // init color lookup table for waterfall
-initColorLUTFire(); // alternative color mapping
 } 
 
 

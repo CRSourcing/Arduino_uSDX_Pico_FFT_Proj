@@ -196,11 +196,6 @@ const uint32_t band_upper_limit[NUMBER_OF_BANDS] = {
 };
 
 
-
-
-
-
-
 // Map option to setting
 uint8_t hmi_pre[5] = { REL_ATT_30, REL_ATT_20, REL_ATT_10, REL_ATT_00, REL_PRE_10 };
 uint8_t hmi_bpf[16] = { REL_LPF2, REL_BPF6, REL_BPF12, REL_BPF12, REL_BPF24, REL_BPF24, REL_BPF24, REL_BPF40,
@@ -211,7 +206,40 @@ int8_t hmi_menu_opt_display;    // current menu option showing on display (it wi
 uint8_t hmi_band = START_BAND;  // actual band, start with predefined band
 
 
-//                                             10 Presets with 6 menus    0=Tune/cursor 1=Mode 2=AGC 3=Pre 4=VOX 5=Band
+
+/*
+
+// Starting freqs when band gets called
+
+#define b0  1910000LU
+#define b1  3800000LU
+#define b2  7200000LU 
+#define b3  10100000LU 
+#define b4  14200000LU 
+#define b5  18100000LU 
+#define b6  21300000LU
+#define b7  24900000LU
+#define b8  27455000LU
+#define b9  28074000LU
+#define b10 28500000LU
+#define b11  870000LU
+#define b12 5000000LU
+#define b13 9000000LU
+#define b14 13820000LU
+#define b15 24000000LU
+
+
+#define MODE_USB  0
+#define MODE_LSB  1
+#define MODE_AM   2
+#define MODE_AM2  3
+#define MODE_CW   4
+*/
+
+
+
+
+//                                             10 Presets with 6 menus    0=Tune/cursor pos  1=Mode 2=AGC 3=Pre 4=VOX 5=Band
 uint8_t band_vars[NUMBER_OF_BANDS][NUMBER_OF_MENUES] = {
   { 4, 1, 2, 3, 0, 0 },
   { 4, 1, 2, 3, 0, 1 },
@@ -293,7 +321,7 @@ void Setup_Band(uint8_t band) {
   hmi_freq = band_starting_freq[band];
 
   band_vars[hmi_band][HMI_S_TUNE] = 4; // start every band with a fixed 1KHz step
-
+ 
   if (hmi_freq > hmi_maxfreq[band])  //checking boundaries
   {
     //Serialx.print("hmi_freq > hmi_maxfreq[band");
@@ -303,8 +331,7 @@ void Setup_Band(uint8_t band) {
     hmi_freq = hmi_minfreq[band];
   }
 
-
- fft_gain = BAND_DEPENDING_FFT_GAIN;  // increase fft gain with freq since signal strength and atmospheric noise decreases  
+ fft_gain = BAND_RELATED_FFT_GAIN;  // increase fft gain with freq since signal strength and atmospheric noise decreases  
 
   print_Band(band);
 
@@ -317,13 +344,11 @@ void Setup_Band(uint8_t band) {
   //ptt_state = 0;
   ptt_external_active = false;
 
-  dsp_setmode(band_vars[band][HMI_S_MODE]);  //MODE_USB=0 MODE_LSB=1  MODE_AM=2  MODE_CW=3
+  dsp_setmode(band_vars[band][HMI_S_MODE]);  //MODE_USB=0 MODE_LSB=1  MODE_AM=2,3  MODE_CW=4
   dsp_setvox(band_vars[band][HMI_S_VOX]);
   dsp_setagc(band_vars[band][HMI_S_AGC]);
   relay_setattn(hmi_pre[band_vars[band][HMI_S_PRE]]);
   relay_setband(hmi_bpf[band_vars[band][HMI_S_BPF]]);
-
-
 }
 
 
@@ -343,8 +368,6 @@ void print_Band(uint8_t band) {
   tft.setTextFont(1);
   tft.setCursor(0, 72);
   if (hmi_o_band_name_displayed[hmi_menu_opt_display][7] == '-') {  // Amateur band label 7th characer is -, for example Amateur-20m
-
-
     tft.setTextColor(TFT_GREEN, TFT_BLACK);
     tft.print(s);
   }
@@ -390,12 +413,18 @@ if (toy > 135 && toy < 160) {
         event = HMI_E_INCREMENT;
     }
 
+    delay(50);
 }
 
 
     if (toy > 80 && toy < 115 && tox > 160 && tox < 240) {  // simulate Enter
         event = HMI_E_SUBMENU;  //Enter
       touch_delay = 2;
+    }
+
+    if(tox > 250 && (toy > 45 && toy < 80)) { // set mode through touch
+      touch_delay = 5;
+      event = HMI_E_ENTER;
     }
 
 
@@ -485,14 +514,9 @@ if (toy > 135 && toy < 160) {
   if (hmi_menu == HMI_S_TUNE)  //We are on main menu
   {
 
-
-#ifdef USE_TOUCH_SCREEN
-    if ((event == HMI_E_ENTER) || (tox > 250 && (toy > 45 && toy < 80))) { // set mode through touch
-      touch_delay = 5;
-#else
     if (event == HMI_E_ENTER)  // ENTER now sets mode
     {
-#endif
+
       band_vars[hmi_band][HMI_S_MODE]++;
       if (band_vars[hmi_band][HMI_S_MODE] > 4)
         band_vars[hmi_band][HMI_S_MODE] = 0;
@@ -511,27 +535,25 @@ if (toy > 135 && toy < 160) {
       hmi_menu_opt_display = band_vars[hmi_band][hmi_menu];  // Restore selection of new menu
     }
 
+else if (event == HMI_E_INCREMENT || event == HMI_E_DECREMENT) {
 
+ 
+    uint8_t step_index = band_vars[hmi_band][HMI_S_TUNE]; // fixes step change bug
+    int32_t step       = hmi_step[step_index];
 
-    else if (event == HMI_E_INCREMENT) {
-
-      hmi_menu_opt_display = band_vars[hmi_band][HMI_S_TUNE]; // fixes step change bug
-      
-      hmi_freq += hmi_step[hmi_menu_opt_display];  // Increment selected digit
-
-      if (hmi_freq > band_upper_limit[hmi_band]) {  // wrap
-        hmi_freq = band_lower_limit[hmi_band];
-      
-      }
-    } else if (event == HMI_E_DECREMENT) {
-
-       hmi_menu_opt_display = band_vars[hmi_band][HMI_S_TUNE]; // fixes step change bug
-
-      hmi_freq -= hmi_step[hmi_menu_opt_display];   // Decrement selected digit
-      if (hmi_freq < band_lower_limit[hmi_band]) {  // Limit to upper band limit
-        hmi_freq = band_upper_limit[hmi_band];
-      }
+    // Apply increment or decrement
+    if (event == HMI_E_INCREMENT) {
+        hmi_freq += step;
+        if (hmi_freq > band_upper_limit[hmi_band]) {
+            hmi_freq = band_lower_limit[hmi_band]; // wrap
+        }
+    } else { // HMI_E_DECREMENT
+        hmi_freq -= step;
+        if (hmi_freq < band_lower_limit[hmi_band]) {
+            hmi_freq = band_upper_limit[hmi_band]; // wrap
+        }
     }
+}
 
 
     if (event == HMI_E_RIGHT) {  // cursor position
@@ -696,22 +718,22 @@ void hmi_callback(uint gpio, uint32_t events) {
 
       break;
     case GP_AUX_0_Enter:  // Enter
-      if (events & GPIO_IRQ_EDGE_RISE) { // Was FALL. RISE seems to cause less baouncing than FALL
+      if (events & GPIO_IRQ_EDGE_FALL) { 
         evt = HMI_E_ENTER;
       }
       break;
     case GP_AUX_1_Escape:  // Escape
-      if (events & GPIO_IRQ_EDGE_RISE) {
+      if (events & GPIO_IRQ_EDGE_FALL) {
         evt = HMI_E_SUBMENU;
       }
       break;
     case GP_AUX_2_Left:  // Previous
-      if (events & GPIO_IRQ_EDGE_RISE) {
+      if (events & GPIO_IRQ_EDGE_FALL) {
         evt = HMI_E_LEFT;
       }
       break;
     case GP_AUX_3_Right:  // Next
-      if (events & GPIO_IRQ_EDGE_RISE) {
+      if (events & GPIO_IRQ_EDGE_FALL) {
         evt = HMI_E_RIGHT;
       }
       break;
@@ -749,7 +771,7 @@ void hmi_callback(uint gpio, uint32_t events) {
  */
 void hmi_init0(void) {
   // Initialize LCD and set VFO
-  Setup_Band(hmi_band);  //                                                             why was this commented out?
+  Setup_Band(hmi_band);  //why was this commented out?
                          //  menu position = Tune  and  cursor position = hmi_menu_opt_display
   hmi_menu = HMI_S_TUNE;
   hmi_menu_opt_display = band_vars[hmi_band][HMI_S_TUNE];  // option on Tune is the cursor position
@@ -807,10 +829,10 @@ for(;;)
 
   // Enable interrupt on level low
   gpio_set_irq_enabled(GP_ENC_A, GPIO_IRQ_EDGE_ALL, true);
-  gpio_set_irq_enabled(GP_AUX_0_Enter, GPIO_IRQ_EDGE_ALL, true);
-  gpio_set_irq_enabled(GP_AUX_1_Escape, GPIO_IRQ_EDGE_ALL, true);
-  gpio_set_irq_enabled(GP_AUX_2_Left, GPIO_IRQ_EDGE_ALL, true);
-  gpio_set_irq_enabled(GP_AUX_3_Right, GPIO_IRQ_EDGE_ALL, true);
+  gpio_set_irq_enabled(GP_AUX_0_Enter, GPIO_IRQ_EDGE_FALL, true); // was GPIO_IRQ_EDGE_ALL
+  gpio_set_irq_enabled(GP_AUX_1_Escape, GPIO_IRQ_EDGE_FALL, true);
+  gpio_set_irq_enabled(GP_AUX_2_Left, GPIO_IRQ_EDGE_FALL, true);
+  gpio_set_irq_enabled(GP_AUX_3_Right, GPIO_IRQ_EDGE_FALL, true);
   //	gpio_set_irq_enabled(GP_PTT, GPIO_IRQ_EDGE_ALL, false);
   gpio_set_irq_enabled(GP_PTT, GPIO_IRQ_EDGE_ALL, true);
 
@@ -1436,7 +1458,7 @@ void touch_evaluate() {
       ys[valid] = y;
       valid++;
     }
-    delayMicroseconds(50);  // ADC settle time
+    delayMicroseconds(20);  // ADC settle time
   }
 
   if (valid == 0)
@@ -1474,8 +1496,6 @@ void touch_evaluate() {
   //char s[30];
   // sprintf(s, " x%d  y%d", x, y);
   // Serialx.println(s);
-
-
 
   hmi_handler(99);
 }
