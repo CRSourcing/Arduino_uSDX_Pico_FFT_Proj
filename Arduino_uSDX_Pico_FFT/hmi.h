@@ -87,7 +87,7 @@ extern "C" {
 #define MODE_AM2  3
 #define MODE_CW   4
 
-#define USE_TOUCH_SCREEN
+//#define USE_TOUCH_SCREEN
 #define BAND_RELATED_FFT_GAIN 32+ hmi_freq / 1000 / 250; // This increases fft_gain automatically when switching to a higher fband
 
 
