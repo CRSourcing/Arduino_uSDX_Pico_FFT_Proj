@@ -11,8 +11,8 @@
  * It will also do the logic behind these, and write feedback to the LCD.
  *
  * The 4 auxiliary buttons have the following functions:
- * GP6 - Enter, confirm : Used to select menu items or make choices from a list
- * GP7 - Escape, cancel : Used to exit a (sub)menu or cancel the current action
+ * GP6 - Enter, confirm : Used to select mode (AM, LSB, USB)  or change to TX
+ * GP7 - Escape, cancel : Used to exit a (sub)menu and save automatically
  * GP8 - Left           : Used to move left, e.g. to select a digit
  * GP9 - Right			: Used to move right, e.g. to select a digit
  *
