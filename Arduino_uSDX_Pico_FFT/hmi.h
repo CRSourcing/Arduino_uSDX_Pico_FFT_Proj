@@ -83,7 +83,7 @@ extern "C" {
 //"USB","LSB","AM","CW"
 #define MODE_USB  0
 #define MODE_LSB  1
-#define MODE_AM   2
+#define MODE_AM  2
 #define MODE_AM2  3
 #define MODE_CW   4
 

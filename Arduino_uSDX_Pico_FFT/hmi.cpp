@@ -11,8 +11,8 @@
  * It will also do the logic behind these, and write feedback to the LCD.
  *
  * The 4 auxiliary buttons have the following functions:
- * GP6 - Mode, : Used to select mode (AM, LSB, USB)  or change to TX
- * GP7 - Menu,  : Used to enter/exit a (sub)menu and save automatically
+ * GP6 - Enter, confirm : Used to select menu items or make choices from a list
+ * GP7 - Escape, cancel : Used to exit a (sub)menu or cancel the current action
  * GP8 - Left           : Used to move left, e.g. to select a digit
  * GP9 - Right			: Used to move right, e.g. to select a digit
  *
@@ -142,7 +142,7 @@ Menu Waterfall Gain: Press Enter and keep pressed. Change waterfall gain while p
 
 
 //char hmi_o_menu[NUMBER_OF_MENUES][8] = {"Tune","Mode","AGC","Pre","VOX"};	// Indexed by hmi_menu  not used - menus done direct in Evaluate()
-char hmi_o_mode[HMI_NUM_OPT_MODE][8] = { "USB", "LSB", "AM", "AM2", "CW " };      // Indexed by band_vars[hmi_band][HMI_S_MODE]  MODE_USB=0 MODE_LSB=1  MODE_AM=2  MODE_CW=3
+char hmi_o_mode[HMI_NUM_OPT_MODE][8] = { "USB", "LSB", "AM", "AM2", "CW " };           // Indexed by band_vars[hmi_band][HMI_S_MODE]  MODE_USB=0 MODE_LSB=1  MODE_AM=2  MODE_CW=3
 char hmi_o_agc[HMI_NUM_OPT_AGC][8] = { "OFF", "Slow ", "Fast " };                      // Indexed by band_vars[hmi_band][HMI_S_AGC]
 char hmi_o_pre[HMI_NUM_OPT_PRE][8] = { "-30dB", "-20dB", "-10dB", "0dB  ", "+10dB" };  // Indexed by band_vars[hmi_band][HMI_S_PRE]
 char hmi_o_vox[HMI_NUM_OPT_VOX][8] = { "OFF", "LOW", "Mid", "HIGH" };                  // Indexed by band_vars[hmi_band][HMI_S_VOX]                                                            //index for NoVOX option
@@ -196,6 +196,11 @@ const uint32_t band_upper_limit[NUMBER_OF_BANDS] = {
 };
 
 
+
+
+
+
+
 // Map option to setting
 uint8_t hmi_pre[5] = { REL_ATT_30, REL_ATT_20, REL_ATT_10, REL_ATT_00, REL_PRE_10 };
 uint8_t hmi_bpf[16] = { REL_LPF2, REL_BPF6, REL_BPF12, REL_BPF12, REL_BPF24, REL_BPF24, REL_BPF24, REL_BPF40,
@@ -206,40 +211,7 @@ int8_t hmi_menu_opt_display;    // current menu option showing on display (it wi
 uint8_t hmi_band = START_BAND;  // actual band, start with predefined band
 
 
-
-/*
-
-// Starting freqs when band gets called
-
-#define b0  1910000LU
-#define b1  3800000LU
-#define b2  7200000LU 
-#define b3  10100000LU 
-#define b4  14200000LU 
-#define b5  18100000LU 
-#define b6  21300000LU
-#define b7  24900000LU
-#define b8  27455000LU
-#define b9  28074000LU
-#define b10 28500000LU
-#define b11  870000LU
-#define b12 5000000LU
-#define b13 9000000LU
-#define b14 13820000LU
-#define b15 24000000LU
-
-
-#define MODE_USB  0
-#define MODE_LSB  1
-#define MODE_AM   2
-#define MODE_AM2  3
-#define MODE_CW   4
-*/
-
-
-
-
-//                                             10 Presets with 6 menus    0=Tune/cursor pos  1=Mode 2=AGC 3=Pre 4=VOX 5=Band
+//                                             10 Presets with 6 menus    0=Tune/cursor 1=Mode 2=AGC 3=Pre 4=VOX 5=Band
 uint8_t band_vars[NUMBER_OF_BANDS][NUMBER_OF_MENUES] = {
   { 4, 1, 2, 3, 0, 0 },
   { 4, 1, 2, 3, 0, 1 },
@@ -272,12 +244,12 @@ const uint32_t hmi_maxfreq[NUMBER_OF_BANDS] = { 2500000L, 6000000L, 12000000L, 1
 //#ifdef PY2KLA_setup
 //#define HMI_MULFREQ 4  // Factor between HMI and actual frequency
 //#else
-#define HMI_MULFREQ 4 // Factor between HMI and actual frequency 
+#define HMI_MULFREQ 4  // Factor between HMI and actual frequency \
                        // Set to 1, 2 or 4 for certain types of mixer
 //#endif
 
 
-char s[100];  //aux to print to the screen
+char s[80];  //aux to print to the screen
 
 bool tx_enabled = false;
 bool tx_enable_changed = true;
@@ -320,8 +292,8 @@ void Setup_Band(uint8_t band) {
 
   hmi_freq = band_starting_freq[band];
 
-  band_vars[hmi_band][HMI_S_TUNE] = 4; // start every band with a fixed 1KHz step
- 
+  band_vars[hmi_band][HMI_S_TUNE] = 4;  // start every band with a fixed 1KHz step
+
   if (hmi_freq > hmi_maxfreq[band])  //checking boundaries
   {
     //Serialx.print("hmi_freq > hmi_maxfreq[band");
@@ -331,7 +303,8 @@ void Setup_Band(uint8_t band) {
     hmi_freq = hmi_minfreq[band];
   }
 
- fft_gain = BAND_RELATED_FFT_GAIN;  // increase fft gain with freq since signal strength and atmospheric noise decreases  
+
+  fft_gain = BAND_RELATED_FFT_GAIN;  // increase fft gain with freq since signal strength and atmospheric noise decreases
 
   print_Band(band);
 
@@ -344,7 +317,7 @@ void Setup_Band(uint8_t band) {
   //ptt_state = 0;
   ptt_external_active = false;
 
-  dsp_setmode(band_vars[band][HMI_S_MODE]);  //MODE_USB=0 MODE_LSB=1  MODE_AM=2,3  MODE_CW=4
+  dsp_setmode(band_vars[band][HMI_S_MODE]);  //MODE_USB=0 MODE_LSB=1  MODE_AM=2  MODE_CW=3
   dsp_setvox(band_vars[band][HMI_S_VOX]);
   dsp_setagc(band_vars[band][HMI_S_AGC]);
   relay_setattn(hmi_pre[band_vars[band][HMI_S_PRE]]);
@@ -359,7 +332,8 @@ void print_Band(uint8_t band) {
 
 
   if (band < 12)  // Amateur bands
-    sprintf(s, "%s: " "%lu-%lu KHz",
+    sprintf(s, "%s: "
+               "%lu-%lu KHz",
             hmi_o_band_name_displayed[band], band_lower_limit[band] / 1000, band_upper_limit[band] / 1000);
   else
     sprintf(s, " Shortwave %s ", hmi_o_band_name_displayed[band]);
@@ -368,6 +342,8 @@ void print_Band(uint8_t band) {
   tft.setTextFont(1);
   tft.setCursor(0, 72);
   if (hmi_o_band_name_displayed[hmi_menu_opt_display][7] == '-') {  // Amateur band label 7th characer is -, for example Amateur-20m
+
+
     tft.setTextColor(TFT_GREEN, TFT_BLACK);
     tft.print(s);
   }
@@ -379,7 +355,7 @@ void print_Band(uint8_t band) {
   }
 
   tft.setFreeFont(FONT1);
- // Serialx.println(s);
+  // Serialx.println(s);
 }
 
 
@@ -399,42 +375,35 @@ void print_Band(uint8_t band) {
 void hmi_handler(uint8_t event) {
 
 
-uint8_t hmi_menu_last = HMI_S_BPF;  //Always start with bands menue
+  uint8_t hmi_menu_last = HMI_S_BPF;  //Always start with bands menue
 
 #ifdef USE_TOUCH_SCREEN
 
   if (event == 99) {
 
-   // Simulate encoder
-if (toy > 135 && toy < 160) {
-    if (tox > 160 && tox < 200) {
+    // Simulate encoder
+    if (toy > 135 && toy < 160) {
+      if (tox > 160 && tox < 200) {
         event = HMI_E_DECREMENT;
-    } else if (tox > 200 && tox < 240) {
+      } else if (tox > 200 && tox < 240) {
         event = HMI_E_INCREMENT;
+      }
     }
-
-    delay(50);
-}
 
 
     if (toy > 80 && toy < 115 && tox > 160 && tox < 240) {  // simulate Enter
-        event = HMI_E_SUBMENU;  //Enter
-      touch_delay = 2;
-    }
-
-    if(tox > 250 && (toy > 45 && toy < 80)) { // set mode through touch
-      touch_delay = 5;
-      event = HMI_E_ENTER;
+      event = HMI_E_SUBMENU;                               
+      touch_delay = 1;
     }
 
 
-  if (toy >115 && toy < 135) {  // simulate L/R
+    if (toy > 115 && toy < 135) {  // simulate L/R
 
       if (tox > 200 && tox < 240)
-        event = HMI_E_RIGHT;  
+        event = HMI_E_RIGHT;
 
-        if (tox > 160 && tox < 200)
-        event = HMI_E_LEFT;  
+      if (tox > 160 && tox < 200)
+        event = HMI_E_LEFT;
 
       touch_delay = 2;
     }
@@ -457,18 +426,18 @@ if (toy > 135 && toy < 160) {
         hmi_freq += (tox / 2 - 80) * 1000;
       touch_delay = 2;
 
-      if ( band_vars[hmi_band][HMI_S_TUNE] != 4) {
-      hmi_menu_opt_display = 4;
-     band_vars[hmi_band][HMI_S_TUNE] = hmi_menu_opt_display; // set to 1KHz step
-      } 
+      if (band_vars[hmi_band][HMI_S_TUNE] != 4) {
+        hmi_menu_opt_display = 4;
+        band_vars[hmi_band][HMI_S_TUNE] = hmi_menu_opt_display;  // set to 1KHz step
+      }
       return;
     }
 
-    if (toy > 150 && toy < 170 && tox < 160) // snippet to ajust fft gain
-      fft_gain = tox ;
-      }
-  
-  
+    if (toy > 150 && toy < 170 && tox < 160)  // snippet to ajust fft gain
+      fft_gain = tox;
+  }
+
+
   // snippet to set cursor with touch
   if (toy > 15 && toy < 50) {
 
@@ -514,9 +483,14 @@ if (toy > 135 && toy < 160) {
   if (hmi_menu == HMI_S_TUNE)  //We are on main menu
   {
 
+
+#ifdef USE_TOUCH_SCREEN
+    if ((event == HMI_E_ENTER) || (tox > 250 && (toy > 45 && toy < 80))) {  // set mode through touch
+      touch_delay = 5;
+#else
     if (event == HMI_E_ENTER)  // ENTER now sets mode
     {
-
+#endif
       band_vars[hmi_band][HMI_S_MODE]++;
       if (band_vars[hmi_band][HMI_S_MODE] > 4)
         band_vars[hmi_band][HMI_S_MODE] = 0;
@@ -535,25 +509,25 @@ if (toy > 135 && toy < 160) {
       hmi_menu_opt_display = band_vars[hmi_band][hmi_menu];  // Restore selection of new menu
     }
 
-else if (event == HMI_E_INCREMENT || event == HMI_E_DECREMENT) {
+    else if (event == HMI_E_INCREMENT || event == HMI_E_DECREMENT) {
 
- 
-    uint8_t step_index = band_vars[hmi_band][HMI_S_TUNE]; // fixes step change bug
-    int32_t step       = hmi_step[step_index];
 
-    // Apply increment or decrement
-    if (event == HMI_E_INCREMENT) {
+      uint8_t step_index = band_vars[hmi_band][HMI_S_TUNE];  // fixes step change bug
+      int32_t step = hmi_step[step_index];
+
+      // Apply increment or decrement
+      if (event == HMI_E_INCREMENT) {
         hmi_freq += step;
         if (hmi_freq > band_upper_limit[hmi_band]) {
-            hmi_freq = band_lower_limit[hmi_band]; // wrap
+          hmi_freq = band_lower_limit[hmi_band];  // wrap
         }
-    } else { // HMI_E_DECREMENT
+      } else {  // HMI_E_DECREMENT
         hmi_freq -= step;
         if (hmi_freq < band_lower_limit[hmi_band]) {
-            hmi_freq = band_upper_limit[hmi_band]; // wrap
+          hmi_freq = band_upper_limit[hmi_band];  // wrap
         }
+      }
     }
-}
 
 
     if (event == HMI_E_RIGHT) {  // cursor position
@@ -718,7 +692,7 @@ void hmi_callback(uint gpio, uint32_t events) {
 
       break;
     case GP_AUX_0_Enter:  // Enter
-      if (events & GPIO_IRQ_EDGE_FALL) { 
+      if (events & GPIO_IRQ_EDGE_FALL) {
         evt = HMI_E_ENTER;
       }
       break;
@@ -771,7 +745,7 @@ void hmi_callback(uint gpio, uint32_t events) {
  */
 void hmi_init0(void) {
   // Initialize LCD and set VFO
-  Setup_Band(hmi_band);  //why was this commented out?
+  Setup_Band(hmi_band);  //                                                             why was this commented out?
                          //  menu position = Tune  and  cursor position = hmi_menu_opt_display
   hmi_menu = HMI_S_TUNE;
   hmi_menu_opt_display = band_vars[hmi_band][HMI_S_TUNE];  // option on Tune is the cursor position
@@ -829,10 +803,10 @@ for(;;)
 
   // Enable interrupt on level low
   gpio_set_irq_enabled(GP_ENC_A, GPIO_IRQ_EDGE_ALL, true);
-  gpio_set_irq_enabled(GP_AUX_0_Enter, GPIO_IRQ_EDGE_FALL, true); // was GPIO_IRQ_EDGE_ALL
-  gpio_set_irq_enabled(GP_AUX_1_Escape, GPIO_IRQ_EDGE_FALL, true);
-  gpio_set_irq_enabled(GP_AUX_2_Left, GPIO_IRQ_EDGE_FALL, true);
-  gpio_set_irq_enabled(GP_AUX_3_Right, GPIO_IRQ_EDGE_FALL, true);
+  gpio_set_irq_enabled(GP_AUX_0_Enter, GPIO_IRQ_EDGE_ALL, true);
+  gpio_set_irq_enabled(GP_AUX_1_Escape, GPIO_IRQ_EDGE_ALL, true);
+  gpio_set_irq_enabled(GP_AUX_2_Left, GPIO_IRQ_EDGE_ALL, true);
+  gpio_set_irq_enabled(GP_AUX_3_Right, GPIO_IRQ_EDGE_ALL, true);
   //	gpio_set_irq_enabled(GP_PTT, GPIO_IRQ_EDGE_ALL, false);
   gpio_set_irq_enabled(GP_PTT, GPIO_IRQ_EDGE_ALL, true);
 
@@ -840,10 +814,9 @@ for(;;)
   gpio_set_irq_enabled_with_callback(GP_ENC_A, GPIO_IRQ_EDGE_ALL, true, hmi_callback);
 
 #ifdef USE_TOUCH_SCREEN
-  uint16_t calData[5] = { 379, 3519, 197, 3591, 1 }; // modify as needed
+  uint16_t calData[5] = { 379, 3519, 197, 3591, 1 };  // modify as needed
   tft.setTouch(calData);
 #endif
-
 }
 
 
@@ -963,14 +936,14 @@ void hmi_smeter(void) {
   }
 
   if (fft_gain_old != fft_gain) {
- 
-     if (!tox) {   // touch was not used
+
+    if (!tox) {  // touch was not used
       tft.setTextColor(TFT_MAGENTA);
       sprintf(s, "Set FFT gain: %d      ", fft_gain);
       tft.fillRect(0, 0, 320, 15, TFT_BLACK);
       tft_writexy_(1, TFT_MAGENTA, TFT_BACKGROUND, 0, 0, (uint8_t *)s);
-     }
-    
+    }
+
 
     sprintf(s, "%d", fft_gain);
     s[3] = 0;
@@ -1050,11 +1023,16 @@ void hmi_power_swr(void)  //read the swr from Arduino Pro Mini I2C
   int16_t pow;
 
   ret = i2c_read_blocking(i2c1, I2C_SWR, i2c_data, 3, false);  // get 3 bytes: SWR, FOR and REF
-  if (ret == 3)                                                //number os bytes received  (<0 if no answer from I2C slave)
+
+  ret = 3;
+  if (ret == 3)  //number os bytes received  (<0 if no answer from I2C slave)
+
   {
 
     if (tx_enable_changed == true)  //if changed tx-rx = display clear
     {
+      
+       tft.fillRect(0,0, 180,16, TFT_BLACK);
       i2c_data0_old = 0;  //print all
     }
 
@@ -1070,27 +1048,33 @@ void hmi_power_swr(void)  //read the swr from Arduino Pro Mini I2C
         break;
         //pow results 0-10W
 
-
 #ifdef TST_MAX_SMETER_SWR
-    pow = 12;
-    i2c_data[0] = 0xf9;  // S level max = 15.9 = F9
+    pow = random(12);
+    i2c_data[0] = random(0xFF);  // S level max = 15.9 = F9
 #endif
+
+
+
 
 
     if (hmi_power_show(pow) == true)  //if it is time to show the new power (swr value follows the power moment)
     {
 
+     tft.fillRect(10,0, 180,16, TFT_BLACK);
       if (pow < 10) {
-        sprintf(s, "%d ", pow);
+        sprintf(s, "PWR: %d ", pow);
       } else {
-        sprintf(s, "%d", pow);
+        sprintf(s, "PWR: %d", pow);
       }
       //tft_writexy_(2, TFT_RED, TFT_BACKGROUND, 1,2,(uint8_t *)s);
-      tft_writexy_plus(15, TFT_RED, TFT_BACKGROUND, 0, x_RT + (1 * X_CHAR2), 0, y_RT, (uint8_t *)s);
+      //tft_writexy_plus(15, TFT_RED, TFT_BACKGROUND, 0, x_RT + (1 * X_CHAR2), 0, y_RT, (uint8_t *)s);
 
-      //TxPower_bargraph((int16_t)(((double)pow * ((double)SWR_POW_MAX / (double)SWR_BARGRAPH_MAX)+(double)0.5));  //division in case we have more power than bargraph steps
-      TxPower_bargraph(pow);
+      tft.setTextFont(2);
+      tft.setCursor(10, 0);
+      tft.setTextColor(TFT_WHITE);
+      tft.print(s);
 
+        TxPower_bargraph(pow);
 
       if (i2c_data0_old != i2c_data[0]) {
         /*
@@ -1103,10 +1087,14 @@ void hmi_power_swr(void)  //read the swr from Arduino Pro Mini I2C
         sprintf(s, "%d.%d", (i2c_data[0]>>4),(i2c_data[0]&0x0f));
         }
   */
-        sprintf(s, "%d.%d ", (i2c_data[0] >> 4), (i2c_data[0] & 0x0f));
-        tft_writexy_plus(1, TFT_RED, TFT_BACKGROUND, 0, x_xGain + (1 * X_CHAR1), 0, y_yGain, (uint8_t *)s);  //same position as "x" on RX
+        sprintf(s, "SWR: %d.%d ", (i2c_data[0] >> 4), (i2c_data[0] & 0x0f));
+
+        tft.setCursor(100, 0);
+        tft.print(s);
         i2c_data0_old = i2c_data[0];
       }
+
+      tft.setFreeFont(FONT1);
     }
   }
 }
@@ -1220,14 +1208,10 @@ void hmi_evaluate(void)  //hmi loop
     }
 
     band_vars_old[HMI_S_MODE] = band_vars[hmi_band][HMI_S_MODE];
-     
-  
-  
-  
   }
 
 
-  
+
   if (band_vars_old[HMI_S_VOX] != band_vars[hmi_band][HMI_S_VOX]) {
     dsp_setvox(band_vars[hmi_band][HMI_S_VOX]);
     band_vars_old[HMI_S_VOX] = band_vars[hmi_band][HMI_S_VOX];
@@ -1260,7 +1244,7 @@ void hmi_evaluate(void)  //hmi loop
     tft.fillRect(210, 55, 25, 16, TFT_BLACK);
 
     if (tx_enabled == true) {
-
+      tft.fillRect(0,0, 180,16, TFT_BLACK); // overwrite highest row
       tft.setTextColor(TFT_RED);
       tft.setCursor(210, 65);
       tft.print("TX");
@@ -1269,7 +1253,7 @@ void hmi_evaluate(void)  //hmi loop
                                //tft_writexy_plus(1, TFT_RED, TFT_BACKGROUND, 0, x_xGain, 0, y_yGain, (uint8_t *)"#0.0");
 #endif
     } else {
-
+       tft.fillRect(0,0, 180,16, TFT_BLACK); 
       tft.setTextColor(TFT_GREEN);
       tft.setCursor(210, 65);
       tft.print("RX");
@@ -1301,7 +1285,9 @@ void hmi_evaluate(void)  //hmi loop
     hmi_power_swr();           //during TX, read the SWR, and print it on display
 #endif
   }
-  tx_enable_changed = false;  //signal to init values at display - already used
+
+
+  tx_enable_changed = false;  //signal to init values at display
 
 
   // if menu changed, print new value
@@ -1390,7 +1376,7 @@ void hmi_evaluate(void)  //hmi loop
         tft.print(s);
 
         sprintf(s, " %s", hmi_o_mode[band_vars[hmi_band][HMI_S_MODE]]);  // update mode
-        print_current_mode(s);                                            //
+        print_current_mode(s);                                           //
         break;
     }
 
@@ -1458,7 +1444,7 @@ void touch_evaluate() {
       ys[valid] = y;
       valid++;
     }
-    delayMicroseconds(20);  // ADC settle time
+    delayMicroseconds(50);  // ADC settle time
   }
 
   if (valid == 0)
@@ -1496,6 +1482,8 @@ void touch_evaluate() {
   //char s[30];
   // sprintf(s, " x%d  y%d", x, y);
   // Serialx.println(s);
+
+
 
   hmi_handler(99);
 }
